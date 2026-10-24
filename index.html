@@ -29,10 +29,10 @@
   --line: #dde1e8;
   --accent: #8d6118;
   --accent-soft: #f2e8d5;
-  --hl-gold: #f6e3a1;
-  --hl-sage: #cfe6c8;
-  --hl-sky: #cfe0f4;
-  --hl-rose: #f3d3d8;
+  --hl-gold: #ffe14d;
+  --hl-sage: #8fe388;
+  --hl-sky: #86cbff;
+  --hl-rose: #ff9cc6;
   --pen-ink: #1c2231;
   --pen-red: #b3261e;
   --pen-blue: #1f5fbf;
@@ -48,7 +48,7 @@
   :root:not([data-theme="light"]) {
     --bg: #10141c; --surface: #171c27; --ink: #e7e4db; --muted: #9ba2b1; --line: #2a3141;
     --accent: #d8ad63; --accent-soft: #2d2719;
-    --hl-gold: #5a4a1c; --hl-sage: #2d4a2c; --hl-sky: #24405f; --hl-rose: #5a2c36;
+    --hl-gold: #8f6f00; --hl-sage: #1d7a35; --hl-sky: #0b6aa8; --hl-rose: #a3245e;
     --pen-ink: #e7e4db; --pen-red: #ff8a80; --pen-blue: #8ab4f8; --pen-gold: #d8ad63; --danger: #ff8a80;
     --shadow: 0 10px 40px rgba(0, 0, 0, .5); color-scheme: dark;
   }
@@ -56,7 +56,7 @@
 :root[data-theme="dark"] {
   --bg: #10141c; --surface: #171c27; --ink: #e7e4db; --muted: #9ba2b1; --line: #2a3141;
   --accent: #d8ad63; --accent-soft: #2d2719;
-  --hl-gold: #5a4a1c; --hl-sage: #2d4a2c; --hl-sky: #24405f; --hl-rose: #5a2c36;
+  --hl-gold: #8f6f00; --hl-sage: #1d7a35; --hl-sky: #0b6aa8; --hl-rose: #a3245e;
   --pen-ink: #e7e4db; --pen-red: #ff8a80; --pen-blue: #8ab4f8; --pen-gold: #d8ad63; --danger: #ff8a80;
   --shadow: 0 10px 40px rgba(0, 0, 0, .5); color-scheme: dark;
 }
@@ -119,6 +119,7 @@ main { min-width: 0; display: flex; flex-direction: column; }
 .ch-head a:hover { text-decoration: underline; }
 .text-wrap { position: relative; }
 #ink { position: absolute; left: 0; top: 0; pointer-events: none; }
+#inkLive { position: fixed; left: 0; top: 0; pointer-events: none; z-index: 15; }
 .pencil-on .text-wrap { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; cursor: crosshair; }
 .text { font-family: var(--f-text); line-height: 1.8; hyphens: auto; -webkit-hyphens: auto; }
 .text .drop { float: left; font-family: var(--f-display); font-weight: 600; color: var(--accent); font-size: 3.3em; line-height: .9; padding: .06em .14em 0 0; }
@@ -246,6 +247,12 @@ textarea { width: 100%; min-height: 120px; resize: vertical; font: inherit; font
 .pad canvas { position: absolute; left: 0; top: 0; }
 .plan-pick { margin: 6px 0 2px; }
 .day-title { font-family: var(--f-text); font-size: 17px; font-style: italic; color: var(--ink); }
+.bookcard { background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: grid; gap: 8px; margin-top: 18px; }
+.bookcard h3 { margin: 0; font-size: 11.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+.bookcard dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; margin: 0; font-size: 14px; }
+.bookcard dt { color: var(--muted); font-weight: 600; }
+.bookcard dd { margin: 0; }
+.bookcard p { margin: 0; font-family: var(--f-text); font-size: 15.5px; line-height: 1.6; }
 @media (prefers-reduced-motion: reduce) { .v, .v.flash { transition: none; animation: none; } .thinking i { animation: none; } }
 </style>
 
@@ -270,6 +277,7 @@ textarea { width: 100%; min-height: 120px; resize: vertical; font: inherit; font
   </main>
 </div>
 
+<canvas id="inkLive" aria-hidden="true"></canvas>
 <div class="scrim" id="scrim" hidden></div>
 <section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" hidden>
   <div class="sheet-head"><h2 id="sheetTitle"></h2><div id="sheetTools"></div><button class="icon-btn" id="btnClose" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
@@ -311,6 +319,8 @@ textarea { width: 100%; min-height: 120px; resize: vertical; font: inherit; font
   const clone = (o) => JSON.parse(JSON.stringify(o));
   const newId = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-4);
   const cssVar = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  let colorCache = {};
+  const colorOf = (n) => colorCache[n] || (colorCache[n] = cssVar(n));
   const ICON_CHECK = `<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></svg>`;
   const ICON_UNDO = `<svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>`;
   const ICON_NOTE = `<svg viewBox="0 0 24 24"><path d="M5 4h10l4 4v12H5z"/><path d="M9 12h6M9 16h4"/></svg>`;
@@ -444,6 +454,7 @@ textarea { width: 100%; min-height: 120px; resize: vertical; font: inherit; font
     if (S.prefs.theme === "auto") { if (r.dataset.ours) { r.removeAttribute("data-theme"); delete r.dataset.ours; } }
     else { r.dataset.theme = S.prefs.theme; r.dataset.ours = "1"; }
     r.style.setProperty("--size", S.prefs.size + "px");
+    colorCache = {};
     document.body.classList.toggle("pencil-on", !!S.prefs.pencil);
     $("#btnPencil").setAttribute("aria-pressed", !!S.prefs.pencil);
     updateBars();
@@ -604,7 +615,7 @@ textarea { width: 100%; min-height: 120px; resize: vertical; font: inherit; font
   function drawStroke(ctx, pts, s, u) {
     if (!pts.length) return;
     ctx.save(); ctx.lineCap = "round"; ctx.lineJoin = "round";
-    ctx.strokeStyle = ctx.fillStyle = s.tool === "hl" ? cssVar("--hl-" + s.c) : (cssVar("--pen-" + s.c) || cssVar("--ink"));
+    ctx.strokeStyle = ctx.fillStyle = s.tool === "hl" ? colorOf("--hl-" + s.c) : (colorOf("--pen-" + s.c) || colorOf("--ink"));
     const w = (s.w || 2) * u, st = s.tool === "hl" ? "hl" : (s.st || "ball");
     const pr = (p) => (p[2] == null ? .5 : p[2]);
     if (st === "hl") { ctx.globalAlpha = .5; ctx.lineWidth = 19 * u; smoothPath(ctx, pts); ctx.stroke(); }
@@ -634,9 +645,11 @@ textarea { width: 100%; min-height: 120px; resize: vertical; font: inherit; font
     else { ctx.lineWidth = w; smoothPath(ctx, pts); ctx.stroke(); }
     ctx.restore();
   }
+  // iPad Safari will not draw a canvas larger than about 16 million pixels
+  const canvasScale = (w, h) => Math.max(.5, Math.min(window.devicePixelRatio || 1, Math.sqrt(16e6 / Math.max(1, w * h))));
   function redrawInk() {
     const wrap = $("#wrap"), cv = $("#ink"); if (!wrap || !cv) return;
-    const dpr = window.devicePixelRatio || 1, w = wrap.clientWidth, h = wrap.scrollHeight;
+    const w = wrap.clientWidth, h = wrap.scrollHeight, dpr = canvasScale(w, h);
     if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) {
       cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); cv.style.width = w + "px"; cv.style.height = h + "px";
     }
@@ -672,7 +685,30 @@ textarea { width: 100%; min-height: 120px; resize: vertical; font: inherit; font
     return { v1: A.v, o1, v2: B.v, o2 };
   }
 
-  let drawing = null;
+  let drawing = null, liveQueued = false;
+  // Smooth the pressure so the line width does not flicker from one sample to the next
+  const nextPoint = (x, y, ev, last) => [x, y, last ? last[2] * .6 + pressure(ev) * .4 : pressure(ev)];
+  function liveLayer(cv, dpr) {
+    const ctx = cv.getContext("2d");
+    dpr = dpr || window.devicePixelRatio || 1;
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return ctx;
+  }
+  function sizeLive() {
+    const cv = $("#inkLive"), dpr = window.devicePixelRatio || 1, w = window.innerWidth, h = window.innerHeight;
+    if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) {
+      cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); cv.style.width = w + "px"; cv.style.height = h + "px";
+    }
+  }
+  function paintLive() {
+    liveQueued = false;
+    const cv = $("#inkLive"); if (!drawing || drawing.tool === "eraser") return;
+    const ctx = liveLayer(cv); ctx.translate(drawing.g.wr.left, drawing.g.wr.top);
+    drawStroke(ctx, drawing.pred ? drawing.pts.concat(drawing.pred) : drawing.pts, drawing, drawing.g.em / 20);
+  }
+  // Points the iPad expects the Pencil to reach next; drawn ahead of time, never saved
+  const predicted = (e, toLocal) => (e.getPredictedEvents ? e.getPredictedEvents().slice(0, 3).map(toLocal) : null);
+  const clearLive = () => { const cv = $("#inkLive"); if (cv) liveLayer(cv); };
   const isStylusTouch = (e) => [...e.touches].some((t) => t.touchType === "stylus");
   const pressure = (e) => (e.pointerType === "pen" && e.pressure ? e.pressure : .5);
   const blockPencilScroll = (e) => { if (S && S.prefs.pencil && e.target.closest && e.target.closest("#wrap") && isStylusTouch(e)) e.preventDefault(); };
@@ -685,6 +721,7 @@ textarea { width: 100%; min-height: 120px; resize: vertical; font: inherit; font
     let a = 1; g.tops.forEach((t, v) => { if (t !== undefined && t <= y + 4) a = v; });
     drawing = { id: newId(), a, tool, st: o.st, w: o.w, c: tool === "hl" ? hlColor : o.c, pts: [[x, y, pressure(e)]], client: [[e.clientX, e.clientY]], g, moved: false, target: e.target, erased: { ink: [], hl: [] } };
     try { $("#reader").setPointerCapture(e.pointerId); } catch (err) {}
+    sizeLive();
     if (tool === "eraser") eraseAt(e.clientX, e.clientY);
     e.preventDefault();
   });
@@ -696,10 +733,13 @@ textarea { width: 100%; min-height: 120px; resize: vertical; font: inherit; font
       const x = ev.clientX - g.wr.left, y = ev.clientY - g.wr.top, last = drawing.pts[drawing.pts.length - 1];
       if (Math.hypot(x - last[0], y - last[1]) < 1.5) continue;
       if (!drawing.moved && Math.hypot(x - drawing.pts[0][0], y - drawing.pts[0][1]) > 5) drawing.moved = true;
-      const pt = [x, y, pressure(ev)];
-      drawing.pts.push(pt); drawing.client.push([ev.clientX, ev.clientY]);
+      drawing.pts.push(nextPoint(x, y, ev, last)); drawing.client.push([ev.clientX, ev.clientY]);
       if (drawing.tool === "eraser") eraseAt(ev.clientX, ev.clientY);
-      else if (ctx && drawing.moved) drawStroke(ctx, [last, pt], drawing.tool === "hl" ? Object.assign({}, drawing, { tool: "pen", st: "ball", w: 6, c: "gold" }) : drawing, g.em / 20);
+    }
+    if (drawing.tool !== "eraser") {
+      const lp = drawing.pts[drawing.pts.length - 1];
+      drawing.pred = predicted(e, (ev) => [ev.clientX - g.wr.left, ev.clientY - g.wr.top, lp[2]]);
+      if (!liveQueued) { liveQueued = true; requestAnimationFrame(paintLive); }
     }
     e.preventDefault();
   });
@@ -722,7 +762,7 @@ textarea { width: 100%; min-height: 120px; resize: vertical; font: inherit; font
     }
   }
   function finishStroke(cancelled) {
-    const dr = drawing; if (!dr) return; drawing = null;
+    const dr = drawing; if (!dr) return; drawing = null; clearLive();
     const { b, c } = S.pos, id = chId(b, c);
     if (cancelled) { redrawInk(); return; }
     suppressClick = true; setTimeout(() => (suppressClick = false), 400);
@@ -742,7 +782,8 @@ textarea { width: 100%; min-height: 120px; resize: vertical; font: inherit; font
     const s = { id: dr.id, a: dr.a, tool: dr.tool, c: dr.c, k: 3, p };
     if (dr.tool === "pen") { s.st = dr.st; s.w = dr.w; }
     chData(b, c, true).ink.push(s);
-    pushUndo(id, { t: "ink", s }); save("ch", id); redrawInk();
+    pushUndo(id, { t: "ink", s }); save("ch", id);
+    const cv = $("#ink"); if (cv) drawStroke(cv.getContext("2d"), dr.pts, s, g.em / 20);
   }
 
   function addHighlight(rg, color) {
@@ -807,8 +848,9 @@ textarea { width: 100%; min-height: 120px; resize: vertical; font: inherit; font
   const PAD_N = 1000;   // stored units across the pad's width
   function mountPad(host, model, onChange) {
     host.innerHTML = `<div class="pad-bar"><span class="seg"><button data-pt="pen" aria-pressed="true">Pen</button><button data-pt="eraser" aria-pressed="false">Eraser</button></span>${penOptsHTML()}
-      <span class="pad-actions"><button class="icon-btn" data-pa="undo" aria-label="Undo">${ICON_UNDO}</button><button class="btn quiet small" data-pa="clear">Clear</button></span></div><div class="pad"><canvas></canvas></div>`;
-    const pad = host.querySelector(".pad"), cv = pad.querySelector("canvas"), ctx = cv.getContext("2d");
+      <span class="pad-actions"><button class="icon-btn" data-pa="undo" aria-label="Undo">${ICON_UNDO}</button><button class="btn quiet small" data-pa="clear">Clear</button></span></div><div class="pad"><canvas></canvas><canvas class="live"></canvas></div>`;
+    const pad = host.querySelector(".pad"), cv = pad.querySelector("canvas"), ctx = cv.getContext("2d"), live = pad.querySelector(".live");
+    let rect = null, queued = false;
     let mode = "pen", cur = null, clearArmed = false;
     const hist = [], W = () => pad.clientWidth, U = () => W() / 600;
     const pts = (s) => { const w = W(), out = []; for (let i = 0; i < s.p.length; i += 3) out.push([s.p[i] / PAD_N * w, s.p[i + 1] / PAD_N * w, s.p[i + 2] / 100]); return out; };
@@ -818,10 +860,11 @@ textarea { width: 100%; min-height: 120px; resize: vertical; font: inherit; font
       let maxY = 0; model.s.forEach((s) => { for (let i = 1; i < s.p.length; i += 3) maxY = Math.max(maxY, s.p[i]); });
       const h = Math.max(260, Math.ceil(maxY / PAD_N * w + 160)), dpr = window.devicePixelRatio || 1;
       pad.style.height = h + "px";
-      cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); cv.style.width = w + "px"; cv.style.height = h + "px";
+      [cv, live].forEach((x) => { x.width = Math.round(w * dpr); x.height = Math.round(h * dpr); x.style.width = w + "px"; x.style.height = h + "px"; });
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0); draw();
     }
-    const at = (e) => { const r = pad.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top, pressure(e)]; };
+    const at = (e, last) => { const r = rect || pad.getBoundingClientRect(); return nextPoint(e.clientX - r.left, e.clientY - r.top, e, last); };
+    const paint = () => { queued = false; if (cur && !cur.erase) drawStroke(liveLayer(live), cur.pred ? cur.pts.concat(cur.pred) : cur.pts, cur, U()); };
     function erase(x, y) {
       const gone = [];
       model.s = model.s.filter((s) => { const hit = pts(s).some(([px, py]) => Math.hypot(px - x, py - y) < 12 + (s.w || 2) * U()); if (hit) gone.push(s); return !hit; });
@@ -834,6 +877,7 @@ textarea { width: 100%; min-height: 120px; resize: vertical; font: inherit; font
     pad.addEventListener("pointerdown", (e) => {
       if (e.pointerType === "touch" || e.button > 0) return;
       e.preventDefault(); try { pad.setPointerCapture(e.pointerId); } catch (x) {}
+      rect = pad.getBoundingClientRect();
       const p = at(e);
       if (mode === "eraser") { cur = { erase: true, n: erase(p[0], p[1]) }; return; }
       const o = pen(); cur = { tool: "pen", st: o.st, c: o.c, w: o.w, pts: [p] };
@@ -842,15 +886,20 @@ textarea { width: 100%; min-height: 120px; resize: vertical; font: inherit; font
       if (!cur) return;
       const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
       for (const ev of (evs.length ? evs : [e])) {
-        const p = at(ev);
+        const last = cur.erase ? null : cur.pts[cur.pts.length - 1], p = at(ev, last);
         if (cur.erase) { cur.n += erase(p[0], p[1]); continue; }
-        const last = cur.pts[cur.pts.length - 1]; if (Math.hypot(p[0] - last[0], p[1] - last[1]) < 1.2) continue;
-        cur.pts.push(p); drawStroke(ctx, [last, p], cur, U());
+        if (Math.hypot(p[0] - last[0], p[1] - last[1]) < 1.2) continue;
+        cur.pts.push(p);
+      }
+      if (!cur.erase) {
+        const lp = cur.pts[cur.pts.length - 1];
+        cur.pred = predicted(e, (ev) => { const r = rect || pad.getBoundingClientRect(); return [ev.clientX - r.left, ev.clientY - r.top, lp[2]]; });
+        if (!queued) { queued = true; requestAnimationFrame(paint); }
       }
       e.preventDefault();
     });
     const end = () => {
-      const c = cur; cur = null; if (!c) return;
+      const c = cur; cur = null; rect = null; liveLayer(live); if (!c) return;
       if (c.erase) { if (c.n) onChange(); return; }
       const w = W(), p = [];
       c.pts.forEach(([x, y, pr]) => p.push(Math.round(x / w * PAD_N), Math.round(y / w * PAD_N), Math.round(pr * 100)));
@@ -1056,8 +1105,9 @@ textarea { width: 100%; min-height: 120px; resize: vertical; font: inherit; font
     $("#hlColors").onclick = (e) => { const x = e.target.closest("[data-c]"); if (!x) return; h.c = x.dataset.c; save("ch", cid); renderStudy(); if (cid === chId(S.pos.b, S.pos.c)) render(); };
     $("#sheetBody").innerHTML = `
       <blockquote class="quote">${esc(rangeText(b, c, h))}</blockquote>
-      <div class="links"><a href="${ampUrl(ref)}" target="_blank" rel="noopener">Read in the Amplified Bible ↗</a><span class="byline">King James Version above</span></div>
+      <div class="links"><a href="${ampUrl(ref)}" target="_blank" rel="noopener">Read in the Amplified Bible ↗</a><a href="${commentaryUrl(b, c)}" target="_blank" rel="noopener">Commentary on ${esc(label(b, c))} ↗</a><span class="byline">King James Version above</span></div>
       <div id="ctx"></div>
+      ${bookCardHTML(b, c)}
       <div class="field" id="hlNoteBox"></div>
       <div class="btn-row"><button class="btn danger" id="hlDelete">Remove highlight</button></div>`;
     noteEditor($("#hlNoteBox"), { label: "My note", text: h.note, ink: h.ink, placeholder: "What is God showing you here?",
@@ -1076,6 +1126,9 @@ textarea { width: 100%; min-height: 120px; resize: vertical; font: inherit; font
     const xr = Array.isArray(x.crossRefs) ? x.crossRefs : [];
     return `<div class="study">
       ${x.summary ? `<section><h3>In brief</h3><p>${esc(x.summary)}</p></section>` : ""}
+      ${x.historical ? `<section><h3>Historical background</h3><p>${esc(x.historical)}</p></section>` : ""}
+      ${x.cultural ? `<section><h3>Cultural background</h3><p>${esc(x.cultural)}</p></section>` : ""}
+      ${x.literary ? `<section><h3>In context</h3><p>${esc(x.literary)}</p></section>` : ""}
       ${x.setting ? `<section><h3>Setting</h3><p>${esc(x.setting)}</p></section>` : ""}
       ${x.expanded ? `<section class="expanded"><h3>Expanded reading</h3><p>${esc(x.expanded)}</p></section>` : ""}
       ${wordsHTML(x.words)}
@@ -1086,9 +1139,13 @@ textarea { width: 100%; min-height: 120px; resize: vertical; font: inherit; font
   }
   function renderCtx(h, b, c) {
     const box = $("#ctx"); if (!box) return;
-    if (h.ctx) { box.innerHTML = ctxHTML(h.ctx); return; }
+    if (h.ctx) {
+      box.innerHTML = ctxHTML(h.ctx) + (SAMPLE && !h.ctx.historical ? `<div class="btn-row"><button class="btn quiet" id="ctxMore">Add historical background</button></div>` : "");
+      const more = $("#ctxMore"); if (more) more.onclick = () => { delete h.ctx; save("ch", chId(b, c)); renderCtx(h, b, c); };
+      return;
+    }
     if (!SAMPLE) {
-      box.innerHTML = `<p class="hint">Study notes for highlights are written by Claude when you open this Bible from claude.ai. Use the Amplified link above to compare the wording.</p>`;
+      box.innerHTML = `<p class="hint">Claude's detailed study notes on this passage appear when you open this Bible from claude.ai. Below is the background to this book, and the commentary link above covers this chapter verse by verse.</p>`;
       return;
     }
     box.innerHTML = `<div class="thinking"><i></i>Preparing the background to this passage…</div>`;
@@ -1097,7 +1154,7 @@ textarea { width: 100%; min-height: 120px; resize: vertical; font: inherit; font
     const ref = rangeRef(b, c, h), verses = BOOKS[b][1][c];
     const from = Math.max(1, h.v1 - 8), to = Math.min(verses.length, h.v2 + 8);
     const around = verses.slice(from - 1, to).map((t, i) => (from + i) + " " + t).join("\n");
-    const prompt = `You are a careful, warm Bible teacher helping someone study. While reading the King James Version they highlighted:
+    const prompt = `You are a careful, warm Bible teacher and historian helping someone study. While reading the King James Version they highlighted:
 
 ${ref}: "${rangeText(b, c, h)}"
 
@@ -1105,15 +1162,17 @@ Surrounding text, ${label(b, c)} (KJV), verses ${from}-${to}:
 ${around}
 
 Reply with only a JSON object of this shape:
-{"summary": "", "setting": "", "expanded": "", "words": [{"word": "", "original": "", "meaning": ""}], "crossRefs": [{"ref": "", "why": ""}], "reflect": ""}
+{"summary": "", "historical": "", "cultural": "", "literary": "", "expanded": "", "words": [{"word": "", "original": "", "meaning": ""}], "crossRefs": [{"ref": "", "why": ""}], "reflect": ""}
 
 - summary: 1-2 sentences on what the highlighted words mean.
-- setting: 3-4 sentences on who wrote or is speaking, to whom, the historical setting, and what comes just before and after.
+- historical: 4-5 sentences of historical background. Name who wrote or is speaking, to whom, the approximate date, and what was happening at the time: the political powers, the situation of God's people, and the events that led up to this passage. Be specific with names, places and dates.
+- cultural: 3-4 sentences on customs, beliefs, religious practice, geography or everyday life of the time that the first readers would have understood and that help explain this passage.
+- literary: 3-4 sentences on where this passage sits in the book: what comes just before and after, the kind of writing it is (law, history, poetry, prophecy, gospel, letter, apocalyptic), and how it fits the book's argument or story.
 - expanded: an amplified-style expanded reading of the highlighted words that brings out the fuller shades of meaning of key terms in [square brackets]. Write it fresh in your own words. Do not quote the Amplified Bible or any other copyrighted translation.
 - words: 2-4 key words from the passage, each with the original Hebrew, Aramaic or Greek word transliterated (and which language) and its range of meaning.
 - crossRefs: 3-4 related passages written as "Book Chapter:Verse" (for example "Romans 5:8") with one sentence on the connection.
 - reflect: one personal question for prayerful reflection.
-Draw on broadly held Christian scholarship; where traditions read it differently, say so briefly. Plain text only, no markdown.`;
+Draw on broadly held Christian scholarship; where traditions or scholars read it differently, say so briefly. Plain text only, no markdown.`;
     SAMPLE.json(prompt).then((x) => {
       if (!x || typeof x !== "object") throw { code: "invalid_json" };
       h.ctx = x; save("ch", chId(b, c));
@@ -1126,6 +1185,84 @@ Draw on broadly held Christian scholarship; where traditions read it differently
       $("#ctx").innerHTML = `<p class="hint">${msg}</p>${e && e.code === "not_granted" ? "" : `<button class="btn quiet" id="ctxRetry">Try again</button>`}`;
       const r = $("#ctxRetry"); if (r) r.onclick = () => renderCtx(h, b, c);
     });
+  }
+
+  // Book backgrounds: [author, when written, historical setting and purpose]. Traditional views, with other views noted where they are widely held.
+  const BOOK_INFO = [
+    ["Traditionally Moses", "c. 1440–1400 BC (many scholars date its final form later)", "Covers creation, the fall, the flood and the patriarchs Abraham, Isaac, Jacob and Joseph (roughly 2100–1800 BC). Written for Israel as a people newly freed from Egypt, it tells where the world, sin and their nation came from, and how God bound himself to Abraham's family by covenant."],
+    ["Traditionally Moses", "c. 1440–1400 BC", "Israel had grown into a nation enslaved in Egypt. Exodus tells of their rescue through Moses, the Passover, the crossing of the sea, the covenant and Ten Commandments at Sinai, and the building of the tabernacle where God would dwell among them."],
+    ["Traditionally Moses", "c. 1440–1400 BC", "Given at Mount Sinai in the year after the exodus. It instructed Israel's priests and people in sacrifice, cleanliness and holy living, so that a holy God could live among a sinful people. Its sacrifices form the background to the New Testament teaching on Christ's death."],
+    ["Traditionally Moses", "c. 1440–1400 BC", "Follows Israel's 40 years in the wilderness between Sinai and the edge of Canaan. A generation's unbelief at Kadesh kept them from entering the land, and the book shows God's faithfulness and discipline as he prepared their children to inherit it."],
+    ["Traditionally Moses", "c. 1400 BC", "Moses' farewell sermons on the plains of Moab, just before Israel crossed the Jordan. He retells their history and renews the covenant with a new generation, calling them to love the Lord with all their heart and to choose life and blessing in the land."],
+    ["Traditionally Joshua, with later additions", "c. 1400–1370 BC (events)", "Records Israel's entry into Canaan under Joshua, Moses' successor: the fall of Jericho, the campaigns of conquest and the division of the land among the tribes. It stresses that God keeps his promises and that the people must stay faithful to him."],
+    ["Unknown; Jewish tradition names Samuel", "c. 1050–1000 BC (events c. 1380–1050 BC)", "The unsettled centuries after Joshua, before Israel had a king. A repeated cycle of sin, oppression, crying out and rescue through judges such as Deborah, Gideon and Samson shows a nation where everyone did what was right in their own eyes."],
+    ["Unknown; Jewish tradition names Samuel", "During or after David's reign", "Set in the time of the judges. Ruth, a Moabite widow, chooses Israel's God and is redeemed by Boaz, her kinsman. Her loyalty leads to the birth of King David's grandfather, showing God's care for outsiders and his quiet providence."],
+    ["Unknown; draws on records of Samuel, Nathan and Gad", "After 930 BC", "Israel's move from judges to kings, about 1100–1010 BC. Samuel, the last judge and a prophet, anoints Saul, whose disobedience costs him the kingdom, and then David, who rises through his faith while Saul pursues him."],
+    ["Unknown; draws on records of Nathan and Gad", "After 930 BC", "David's 40-year reign, about 1010–970 BC: Jerusalem made the capital, God's covenant promising David an everlasting throne, and David's sin with Bathsheba and the family troubles that followed. It shows both God's grace and the cost of sin."],
+    ["Unknown; Jewish tradition names Jeremiah", "c. 560–540 BC, during the exile", "From Solomon's glory and the building of the temple (about 970 BC) to the nation splitting into Israel and Judah. Written for exiles in Babylon, it explains that their disaster came from the kings' unfaithfulness, and includes the prophets Elijah and Elisha."],
+    ["Unknown; Jewish tradition names Jeremiah", "c. 560–540 BC, during the exile", "Continues the divided kingdom until Assyria destroyed Israel (722 BC) and Babylon destroyed Jerusalem and the temple (586 BC). It shows God's patience through many prophets and the judgement that came when the people would not turn back."],
+    ["Traditionally Ezra", "c. 450–400 BC, after the return from exile", "Retells Israel's history from Adam to David for Jews rebuilding after the exile. It focuses on David's line, the temple and true worship, reminding a small, discouraged community that they still belonged to God's purposes."],
+    ["Traditionally Ezra", "c. 450–400 BC", "Covers Solomon and the kings of Judah to the exile, then Cyrus's decree allowing the return. It highlights kings who sought God and brought revival, encouraging the returned exiles to seek the Lord and worship him faithfully."],
+    ["Ezra, a priest and scribe", "c. 440 BC", "The first returns from Babylon after Persia's King Cyrus allowed the Jews home in 538 BC: rebuilding the temple despite opposition, and Ezra's later mission (458 BC) to teach God's law and call the people back from intermarriage with idol worshippers."],
+    ["Nehemiah, cupbearer to the Persian king", "c. 430 BC", "In 445 BC Nehemiah led the rebuilding of Jerusalem's ruined walls in 52 days despite threats and ridicule. With Ezra he read the law to the people and led them to renew the covenant. A model of prayerful, practical leadership."],
+    ["Unknown", "c. 470–400 BC", "Set in the Persian capital Susa under King Xerxes (Ahasuerus) about 483–473 BC, among Jews who stayed in exile. Esther, a Jewish queen, risks her life to stop Haman's plot to destroy her people. God is never named, but his hidden providence runs through every event."],
+    ["Unknown", "Uncertain; the setting is the age of the patriarchs", "A righteous man loses his wealth, children and health. Through long debates with friends who insist suffering must be punishment, the book wrestles with why the innocent suffer, ending when God speaks from the whirlwind and Job bows before his wisdom."],
+    ["David (73 psalms), Asaph, the sons of Korah, Solomon, Moses and others", "c. 1440–450 BC", "Israel's songbook and prayer book, gathered over a thousand years and used in temple worship. The psalms cover praise, lament, thanksgiving, confession, wisdom and royal hope, and many look ahead to the Messiah."],
+    ["Mainly Solomon, with Agur, Lemuel and others", "c. 970–700 BC; collected in Hezekiah's time", "Practical wisdom for daily life, much of it addressed by a father to his son. Built on the fear of the Lord, it speaks to work, money, speech, friendship, sexual faithfulness and character in short, memorable sayings."],
+    ["Traditionally Solomon (\"the Preacher\")", "c. 935 BC on the traditional view", "A wise king's search for meaning \"under the sun\" through pleasure, work, wealth and learning, which all prove fleeting. He concludes that life is God's gift to enjoy, and that the whole duty of man is to fear God and keep his commandments."],
+    ["Traditionally Solomon", "c. 960 BC on the traditional view", "A love poem celebrating the love between a bride and bridegroom and the goodness of married love. Jewish and Christian readers have also long seen in it a picture of God's love for his people and Christ's love for the church."],
+    ["Isaiah, son of Amoz", "c. 740–680 BC", "Isaiah prophesied in Jerusalem under four kings of Judah while Assyria threatened the region. He warned of judgement, called Judah to trust God rather than foreign alliances, and gave the fullest Old Testament pictures of the coming Messiah and Suffering Servant."],
+    ["Jeremiah, with his scribe Baruch", "c. 627–580 BC", "The \"weeping prophet\" spoke for 40 years as Babylon rose. He warned Judah of coming destruction, was persecuted for it, and saw Jerusalem fall in 586 BC, yet he also promised a new covenant written on the heart."],
+    ["Traditionally Jeremiah", "Soon after 586 BC", "Five poems of grief over Jerusalem's destruction by Babylon, the burned temple and the starving people. At its centre the book turns to hope: the Lord's mercies are new every morning and great is his faithfulness."],
+    ["Ezekiel, a priest", "c. 593–570 BC", "Taken to Babylon with the exiles in 597 BC, Ezekiel received dramatic visions. He explained why Jerusalem must fall, then after its fall promised a new heart, dry bones brought to life, and God's glory returning to a renewed temple."],
+    ["Daniel", "c. 530 BC (many scholars date its final form later)", "Daniel was taken to Babylon as a youth in 605 BC and served in the courts of Babylon and Persia. Stories of faithfulness under pressure (the fiery furnace, the lions' den) are followed by visions that show God ruling over the rise and fall of empires."],
+    ["Hosea", "c. 755–715 BC", "Prophesied to the northern kingdom of Israel in its last decades before Assyria destroyed it. God told Hosea to marry Gomer, who was unfaithful, as a living picture of Israel's spiritual adultery and of God's persistent, redeeming love."],
+    ["Joel", "Uncertain; possibly c. 835 BC or after the exile", "A devastating locust plague becomes a warning of the coming \"day of the Lord\" and a call to return to God with the whole heart. It promises that God will pour out his Spirit on all people, which Peter quotes at Pentecost."],
+    ["Amos, a shepherd from Tekoa", "c. 760–750 BC", "A farmer from Judah sent to prosperous northern Israel under Jeroboam II. He condemned luxury built on injustice and empty religion, calling for justice to roll down like waters."],
+    ["Obadiah", "Probably soon after 586 BC", "The shortest Old Testament book. It pronounces judgement on Edom, Israel's relative descended from Esau, for gloating over and joining in Jerusalem's destruction, and promises that the kingdom will be the Lord's."],
+    ["Jonah, or about Jonah", "Events c. 780–750 BC", "God sends a reluctant prophet to Nineveh, the capital of Israel's brutal enemy Assyria. Jonah flees, is swallowed by a great fish, preaches, and is angry when Nineveh repents and God shows mercy. It reveals God's compassion even for Israel's enemies."],
+    ["Micah of Moresheth", "c. 735–700 BC", "A contemporary of Isaiah who spoke to both Israel and Judah. He denounced corrupt leaders and injustice, foretold that the Messiah would be born in Bethlehem, and summed up what God requires: to do justly, love mercy and walk humbly with God."],
+    ["Nahum", "c. 660–612 BC", "About a century after Jonah, Nineveh had returned to cruelty. Nahum announces its certain fall, which came in 612 BC, comforting Judah that the Lord is slow to anger but will not leave the guilty unpunished."],
+    ["Habakkuk", "c. 609–598 BC", "As Babylon rose, Habakkuk asked God why he allowed injustice and how he could use a wicked nation to punish Judah. God answers that the just shall live by faith, and the book ends in a song of trust even in loss."],
+    ["Zephaniah, a descendant of King Hezekiah", "c. 640–620 BC", "Prophesied during King Josiah's reign, probably before his reforms. He warned of the coming day of the Lord against Judah and the nations, then promised that God would rejoice over his restored people with singing."],
+    ["Haggai", "520 BC", "The exiles had returned but left the temple unfinished for about 16 years while building their own houses. Haggai urged them to put God first and rebuild, promising that the glory of this house would be greater than the former."],
+    ["Zechariah, a priest", "c. 520–480 BC", "A contemporary of Haggai encouraging the returned exiles to finish the temple. His night visions and prophecies look far ahead to the Messiah: the king riding on a donkey, the pierced one, and the Lord reigning over all the earth."],
+    ["Malachi", "c. 430 BC", "Written about the time of Nehemiah, when worship had grown careless: blemished sacrifices, broken marriages and withheld tithes. It is the last Old Testament prophet before 400 years of silence, ending with the promise of a messenger to prepare the Lord's way."],
+    ["Matthew (Levi), a tax collector and apostle", "c. AD 50–70", "Written mainly for Jewish readers to show that Jesus is the promised Messiah and King, the Son of David who fulfils the Old Testament. It gathers Jesus' teaching into five great sermons, including the Sermon on the Mount."],
+    ["John Mark, drawing on Peter's preaching", "c. AD 55–65", "Probably the earliest Gospel, written for Gentile Christians, likely in Rome under persecution. Fast-moving and vivid, it presents Jesus as the Son of God and suffering Servant who came to give his life as a ransom for many."],
+    ["Luke, a physician and companion of Paul", "c. AD 60–62", "An orderly, researched account written for Theophilus, a Gentile. Luke stresses Jesus as Saviour of all people, with special care for the poor, women, outsiders and sinners, and records parables such as the Prodigal Son found nowhere else."],
+    ["John the apostle, \"the disciple whom Jesus loved\"", "c. AD 85–95", "Written late in the first century so that readers would believe Jesus is the Christ, the Son of God, and have life in his name. Built around seven signs and seven \"I am\" sayings, it gives Jesus' long conversations and the Upper Room teaching."],
+    ["Luke", "c. AD 62", "The sequel to Luke's Gospel, covering about AD 30–62. It traces the gospel spreading by the Holy Spirit from Jerusalem to Samaria and on to Rome, through Peter's leadership and Paul's missionary journeys, ending with Paul under arrest in Rome."],
+    ["Paul the apostle", "c. AD 57, from Corinth", "Paul's fullest explanation of the gospel, written to a church of Jewish and Gentile believers he had not yet visited. It shows that all have sinned, that people are made right with God by faith in Christ, and how that grace changes everyday life."],
+    ["Paul", "c. AD 55, from Ephesus", "Corinth was a wealthy, immoral port city. Paul answers reports of divisions, sexual sin, lawsuits, disorder in worship and doubts about the resurrection, pointing the church to the cross, to love, and to Christ's rising from the dead."],
+    ["Paul", "c. AD 56, from Macedonia", "Paul's most personal letter. After painful conflict with the Corinthian church and attacks from rival teachers, he defends his ministry by pointing to weakness, suffering and God's power, and urges generous giving to poor believers in Jerusalem."],
+    ["Paul", "c. AD 48–55", "Written to churches in Galatia unsettled by teachers who insisted Gentile Christians must be circumcised and keep the law of Moses. Paul fiercely defends the gospel of grace: we are justified by faith in Christ, free, and called to walk by the Spirit."],
+    ["Paul, while imprisoned", "c. AD 60–62, from Rome", "A letter, probably circulated among churches around Ephesus, a major city devoted to the goddess Artemis. It celebrates every spiritual blessing believers have in Christ, the unity of Jew and Gentile in one body, and teaching on the Christian household and spiritual warfare."],
+    ["Paul, while imprisoned", "c. AD 61–62, from Rome", "A warm thank-you letter to the church at Philippi, a Roman colony and the first church Paul planted in Europe. Though in chains, Paul writes about joy, the humility of Christ who emptied himself, pressing on, and contentment in all circumstances."],
+    ["Paul, while imprisoned", "c. AD 60–62, from Rome", "Written to a church Paul had not visited, threatened by teaching that mixed Christ with philosophy, rituals and angel worship. Paul shows that Christ is supreme over all creation and fully sufficient, so believers need nothing added."],
+    ["Paul, with Silas and Timothy", "c. AD 50–51, from Corinth", "Paul had to leave Thessalonica after only a few weeks because of persecution. He encourages the young church to stand firm, live holy lives and take hope in Christ's return, explaining what happens to believers who have died."],
+    ["Paul, with Silas and Timothy", "c. AD 51–52, from Corinth", "Some Thessalonians thought the day of the Lord had already come, and some had stopped working. Paul corrects these errors, explains events that must come first, and encourages endurance under persecution."],
+    ["Paul", "c. AD 62–64", "Written to Timothy, Paul's young co-worker leading the church in Ephesus. It gives guidance on false teaching, prayer, qualifications for church leaders, care for widows, and the dangers of loving money."],
+    ["Paul, in prison awaiting execution", "c. AD 66–67, from Rome", "Paul's last letter, written from a cold Roman cell under Nero. He urges Timothy to guard the gospel, endure hardship as a good soldier and preach the word, and declares that he has fought the good fight and finished the race."],
+    ["Paul", "c. AD 62–64", "Written to Titus, left on the island of Crete to set the churches in order. Cretans had a reputation for dishonesty, and Paul stresses appointing godly elders and showing the grace of God through good works."],
+    ["Paul, while imprisoned", "c. AD 60–62, from Rome", "A short personal letter to Philemon, a believer in Colossae, about Onesimus, his runaway slave who had become a Christian through Paul. Paul asks Philemon to welcome him back as a brother, a picture of the gospel's power to reconcile."],
+    ["Unknown (Paul, Barnabas and Apollos have been suggested)", "c. AD 64–70, before the temple's destruction", "Written to Jewish Christians tempted under pressure to return to Judaism. It shows that Jesus is better than angels, Moses, the priesthood and the sacrifices, and calls readers to hold fast in faith, with the great roll call of faith in chapter 11."],
+    ["James, the brother of Jesus and leader of the Jerusalem church", "c. AD 45–50", "Probably the earliest New Testament letter, written to Jewish believers scattered abroad. Like Proverbs, it is intensely practical: real faith shows itself in endurance in trials, care for the poor, controlling the tongue and humble obedience."],
+    ["Peter the apostle", "c. AD 62–64, from Rome", "Written to Christians across Asia Minor facing slander and growing persecution. Peter reminds them of their living hope and new identity as God's people, and teaches them to follow Christ's example in suffering."],
+    ["Peter the apostle", "c. AD 65–68, shortly before his death", "Peter's farewell, warning against false teachers who denied Christ's return and lived immorally. He urges believers to grow in grace and knowledge and affirms the reliability of Scripture and the certainty of the day of the Lord."],
+    ["John the apostle", "c. AD 85–95, probably from Ephesus", "Written after false teachers left the church denying that Jesus came in the flesh. John gives tests of true faith (believing in Jesus, obeying God and loving one another) so that believers may know they have eternal life. God is light and God is love."],
+    ["John the apostle (\"the elder\")", "c. AD 85–95", "A short letter to \"the elect lady and her children\", probably a church. It urges walking in truth and love and warns against welcoming travelling teachers who deny that Jesus came in the flesh."],
+    ["John the apostle (\"the elder\")", "c. AD 85–95", "A personal note to Gaius commending his hospitality to travelling missionaries, and rebuking Diotrephes, a church leader who loved to be first and refused to welcome them."],
+    ["Jude, brother of James and of Jesus", "c. AD 65–80", "Jude meant to write about salvation but instead urgently warns of ungodly people who had crept into the church, turning grace into an excuse for immorality. He calls believers to contend for the faith and keep themselves in God's love."],
+    ["John the apostle", "c. AD 95, on the island of Patmos", "Written in exile during the persecution under Emperor Domitian to seven churches in Asia. Through vivid symbolic visions it reveals the risen Christ, God's judgement on evil, and the final victory of the Lamb, ending in the new heaven and new earth."],
+  ];
+  const ewSlug = (b) => (b === 18 ? "psalm" : BOOKS[b][0].toLowerCase().replace(/\s+/g, "-"));
+  const commentaryUrl = (b, c) => "https://enduringword.com/bible-commentary/" + ewSlug(b) + "-" + (c + 1) + "/";
+  function bookCardHTML(b, c) {
+    const info = BOOK_INFO[b]; if (!info) return "";
+    return `<section class="bookcard"><h3>About ${esc(BOOKS[b][0])}</h3>
+      <dl><dt>Author</dt><dd>${esc(info[0])}</dd><dt>Written</dt><dd>${esc(info[1])}</dd><dt>Where this falls</dt><dd>Chapter ${c + 1} of ${BOOKS[b][1].length}, in the ${b < 39 ? "Old" : "New"} Testament</dd></dl>
+      <p>${esc(info[2])}</p></section>`;
   }
 
   // ---------- Notes ----------
