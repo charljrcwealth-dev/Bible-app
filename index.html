@@ -226,6 +226,26 @@ textarea { width: 100%; min-height: 120px; resize: vertical; font: inherit; font
 .toast button { background: var(--accent); color: var(--surface); border-radius: 999px; padding: 6px 12px; font-weight: 600; font-size: 13.5px; }
 .toast button[hidden] { display: none; }
 .toast:not(:has(button:not([hidden]))) { padding-right: 16px; }
+/* Pen options and handwriting pads */
+.palette { flex-direction: column; align-items: stretch; gap: 4px; }
+.prow { display: flex; align-items: center; gap: 2px; flex-wrap: wrap; justify-content: center; }
+.penopts { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.pen-style { font: inherit; font-size: 14px; font-weight: 500; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+.sizes { display: inline-flex; gap: 2px; }
+.size { width: 34px; height: 34px; border-radius: 8px; display: grid; place-items: center; }
+.size i { display: block; border-radius: 50%; background: var(--ink); }
+.size[aria-pressed="true"] { background: var(--accent-soft); box-shadow: inset 0 0 0 1.5px var(--accent); }
+.pcolors { display: inline-flex; }
+.pcolors .swatch { width: 30px; height: 30px; }
+.field-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.field-head label { font-weight: 600; font-size: 13.5px; }
+.pad-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 4px 0 8px; }
+.pad-actions { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; }
+.btn.small { padding: 7px 12px; font-size: 13.5px; }
+.pad { position: relative; height: 260px; border: 1px solid var(--line); border-radius: 12px; background-color: var(--surface); background-image: repeating-linear-gradient(to bottom, transparent 0, transparent 35px, var(--line) 35px, var(--line) 36px); background-position: 0 14px; overflow: hidden; cursor: crosshair; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.pad canvas { position: absolute; left: 0; top: 0; }
+.plan-pick { margin: 6px 0 2px; }
+.day-title { font-family: var(--f-text); font-size: 17px; font-style: italic; color: var(--ink); }
 @media (prefers-reduced-motion: reduce) { .v, .v.flash { transition: none; animation: none; } .thinking i { animation: none; } }
 </style>
 
@@ -270,15 +290,17 @@ textarea { width: 100%; min-height: 120px; resize: vertical; font: inherit; font
   <button class="icon-btn" id="actDone" aria-label="Done"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
 </div>
 
-<div class="floatbar" id="palette" hidden>
-  <button class="icon-btn" data-tool="pen" aria-label="Pen" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M15.5 4.5l4 4L8 20H4v-4z"/></svg></button>
-  <button class="icon-btn" data-tool="hl" aria-label="Highlighter" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="m9 15-3 3h5l1-1"/><path d="m9 15 8.5-8.5a2.1 2.1 0 0 1 3 3L12 18z"/><path d="M4 21h16"/></svg></button>
-  <button class="icon-btn" data-tool="eraser" aria-label="Eraser" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M8 20h12"/><path d="m4.6 14.6 9.9-9.9a2 2 0 0 1 2.8 0l2 2a2 2 0 0 1 0 2.8L11 18H8z"/><path d="m9 10 5 5"/></svg></button>
-  <span class="sep"></span>
-  <span id="palColors" style="display:flex"></span>
-  <span class="sep"></span>
-  <button class="icon-btn" id="palUndo" aria-label="Undo"><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
-  <button class="icon-btn" id="palOff" aria-label="Stop writing"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+<div class="floatbar palette" id="palette" hidden>
+  <div class="prow">
+    <button class="icon-btn" data-tool="pen" aria-label="Pen" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M15.5 4.5l4 4L8 20H4v-4z"/></svg></button>
+    <button class="icon-btn" data-tool="hl" aria-label="Highlighter" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="m9 15-3 3h5l1-1"/><path d="m9 15 8.5-8.5a2.1 2.1 0 0 1 3 3L12 18z"/><path d="M4 21h16"/></svg></button>
+    <button class="icon-btn" data-tool="eraser" aria-label="Eraser" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M8 20h12"/><path d="m4.6 14.6 9.9-9.9a2 2 0 0 1 2.8 0l2 2a2 2 0 0 1 0 2.8L11 18H8z"/><path d="m9 10 5 5"/></svg></button>
+    <span class="sep"></span>
+    <span id="palColors" style="display:flex"></span>
+    <button class="icon-btn" id="palUndo" aria-label="Undo"><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
+    <button class="icon-btn" id="palOff" aria-label="Stop writing"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  </div>
+  <div class="prow" id="palPen"></div>
 </div>
 <div class="toast" id="toast" role="status" hidden><span id="toastText"></span><button id="toastBtn" hidden></button></div>
 
@@ -290,18 +312,19 @@ textarea { width: 100%; min-height: 120px; resize: vertical; font: inherit; font
   const newId = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-4);
   const cssVar = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
   const ICON_CHECK = `<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></svg>`;
+  const ICON_UNDO = `<svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>`;
   const ICON_NOTE = `<svg viewBox="0 0 24 24"><path d="M5 4h10l4 4v12H5z"/><path d="M9 12h6M9 16h4"/></svg>`;
 
   let BOOKS = null, TOTAL_CH = 0, FLAT = null, OT = [], NT = [];
   const DATA = { state: null, ch: {}, study: {} };
   let S = null;                      // DATA.state
   let sel = new Set(), openBook = null, sheetMode = null, scope = "all";
-  let tool = "pen", penColor = "ink", hlColor = "gold";
+  let tool = "pen", hlColor = "gold";
   let studyTarget = null, planDay = 1;
   const pendingCtx = new Set(), pendingGuide = new Set();
   const undo = {};                   // chapter id -> actions
 
-  const DEFAULT_STATE = () => ({ pos: { b: 18, c: 22 }, marks: [], read: {}, prefs: { size: 20, layout: "lines", nums: true, theme: "auto", pencil: false }, plan: { start: null, done: {} } });
+  const DEFAULT_STATE = () => ({ pos: { b: 18, c: 22 }, marks: [], read: {}, prefs: { size: 20, layout: "lines", nums: true, theme: "auto", pencil: false, penStyle: "ball", penSize: 1, penColor: "ink" }, plans: {}, activePlan: "year" });
   const DAILY = [[18,22,0],[42,2,15],[22,39,30],[49,3,12],[44,7,27],[19,2,4],[23,28,10],[18,45,0],[39,10,27],[45,12,3],[42,13,26],[44,11,1],[48,1,7],[49,3,5],[57,10,0],[42,9,10],[18,90,0],[22,40,9],[5,0,8],[42,10,24],[44,14,12],[46,4,16],[58,0,4],[61,3,7],[39,5,32],[18,118,104],[22,25,2],[39,5,13],[32,5,7],[24,2,21],[47,5,8]];
   const label = (b, c) => (b === 18 ? "Psalm" : BOOKS[b][0]) + " " + (c + 1);
   const key = (b, c, v) => b + "." + c + "." + v;
@@ -345,7 +368,9 @@ textarea { width: 100%; min-height: 120px; resize: vertical; font: inherit; font
     S = DATA.state;
     const d = DEFAULT_STATE();
     S.prefs = Object.assign(d.prefs, S.prefs || {});
-    S.plan = Object.assign(d.plan, S.plan || {});
+    S.plans = S.plans || {};
+    if (S.plan) { if (!S.plans.year) S.plans.year = S.plan; delete S.plan; }
+    S.activePlan = S.activePlan || "year";
     S.marks = S.marks || []; S.read = S.read || {};
     if (!S.pos || !BOOKS[S.pos.b] || !BOOKS[S.pos.b][1][S.pos.c]) S.pos = d.pos;
   }
@@ -552,27 +577,62 @@ textarea { width: 100%; min-height: 120px; resize: vertical; font: inherit; font
     if (Math.abs(dx) > 80 && Math.abs(dy) < 50) move(dx < 0 ? 1 : -1);
   }, { passive: true });
 
-  // ---------- Apple Pencil: ink, smart highlighter, eraser ----------
+  // ---------- Apple Pencil: pen styles, ink, smart highlighter, eraser ----------
   const SCALE = 20;   // stored units per em
+  const SIZES = [1, 1.8, 2.8, 4.2, 6.5];
+  const STYLES = [["ball", "Ballpoint"], ["fountain", "Fountain pen"], ["pencil", "Pencil"], ["marker", "Felt marker"], ["calli", "Calligraphy"]];
+  const PEN_COLORS = [["ink", "Black ink", "sw-ink"], ["red", "Red ink", "sw-red"], ["blue", "Blue ink", "sw-blue"], ["gold", "Gold ink", "sw-pgold"]];
+  const pen = () => ({ st: S.prefs.penStyle || "ball", w: SIZES[S.prefs.penSize] || 1.8, c: S.prefs.penColor || "ink" });
   function geom() {
     const wrap = $("#wrap"); if (!wrap) return null;
     const wr = wrap.getBoundingClientRect(), em = S.prefs.size, tops = [];
     wrap.querySelectorAll(".v").forEach((el) => { tops[+el.dataset.v] = el.getBoundingClientRect().top - wr.top; });
     return { wrap, wr, em, tops };
   }
-  const toPx = (s, g) => { const top = g.tops[s.a] || 0, out = []; for (let i = 0; i < s.p.length; i += 2) out.push([s.p[i] / SCALE * g.em, top + s.p[i + 1] / SCALE * g.em]); return out; };
-  function styleFor(ctx, s, em) {
-    ctx.lineCap = "round"; ctx.lineJoin = "round";
-    if (s.tool === "hl") { ctx.globalAlpha = .5; ctx.strokeStyle = cssVar("--hl-" + s.c); ctx.lineWidth = em * .95; }
-    else { ctx.globalAlpha = 1; ctx.strokeStyle = cssVar("--pen-" + s.c) || cssVar("--ink"); ctx.lineWidth = Math.max(1.2, em * .1); }
-  }
-  function paint(ctx, pts, s, em) {
-    ctx.save(); styleFor(ctx, s, em); ctx.beginPath();
-    ctx.moveTo(pts[0][0], pts[0][1]);
+  const toPx = (s, g) => {
+    const top = g.tops[s.a] || 0, k = s.k || 2, out = [];
+    for (let i = 0; i < s.p.length; i += k) out.push([s.p[i] / SCALE * g.em, top + s.p[i + 1] / SCALE * g.em, k === 3 ? s.p[i + 2] / 100 : .5]);
+    return out;
+  };
+  function smoothPath(ctx, pts) {
+    ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
     if (pts.length === 1) ctx.lineTo(pts[0][0] + .1, pts[0][1]);
     for (let i = 1; i < pts.length - 1; i++) ctx.quadraticCurveTo(pts[i][0], pts[i][1], (pts[i][0] + pts[i + 1][0]) / 2, (pts[i][1] + pts[i + 1][1]) / 2);
     if (pts.length > 1) ctx.lineTo(pts[pts.length - 1][0], pts[pts.length - 1][1]);
-    ctx.stroke(); ctx.restore();
+  }
+  // u = pixels per width unit
+  function drawStroke(ctx, pts, s, u) {
+    if (!pts.length) return;
+    ctx.save(); ctx.lineCap = "round"; ctx.lineJoin = "round";
+    ctx.strokeStyle = ctx.fillStyle = s.tool === "hl" ? cssVar("--hl-" + s.c) : (cssVar("--pen-" + s.c) || cssVar("--ink"));
+    const w = (s.w || 2) * u, st = s.tool === "hl" ? "hl" : (s.st || "ball");
+    const pr = (p) => (p[2] == null ? .5 : p[2]);
+    if (st === "hl") { ctx.globalAlpha = .5; ctx.lineWidth = 19 * u; smoothPath(ctx, pts); ctx.stroke(); }
+    else if (st === "marker") { ctx.globalAlpha = .8; ctx.lineWidth = w * 2.4; smoothPath(ctx, pts); ctx.stroke(); }
+    else if (st === "fountain") {
+      if (pts.length === 1) { ctx.beginPath(); ctx.arc(pts[0][0], pts[0][1], w * .5, 0, 7); ctx.fill(); }
+      for (let i = 1; i < pts.length; i++) {
+        const a = pts[i - 1], b = pts[i];
+        ctx.lineWidth = w * (.3 + 1.4 * (pr(a) + pr(b)) / 2);
+        ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke();
+      }
+    }
+    else if (st === "pencil") {
+      const avg = pts.reduce((n, p) => n + pr(p), 0) / pts.length;
+      ctx.lineWidth = Math.max(.8, w * .8);
+      [[0, 0, .55], [.45, -.3, .25], [-.35, .35, .2]].forEach(([dx, dy, a]) => {
+        ctx.globalAlpha = Math.min(1, a * (.7 + avg)); ctx.save(); ctx.translate(dx * w, dy * w); smoothPath(ctx, pts); ctx.stroke(); ctx.restore();
+      });
+    }
+    else if (st === "calli") {
+      const nx = Math.cos(-Math.PI / 4) * w * 1.3, ny = Math.sin(-Math.PI / 4) * w * 1.3;
+      ctx.lineWidth = Math.max(.6, w * .22);
+      const quad = (a, b) => { ctx.beginPath(); ctx.moveTo(a[0] - nx, a[1] - ny); ctx.lineTo(a[0] + nx, a[1] + ny); ctx.lineTo(b[0] + nx, b[1] + ny); ctx.lineTo(b[0] - nx, b[1] - ny); ctx.closePath(); ctx.fill(); ctx.stroke(); };
+      if (pts.length === 1) quad(pts[0], pts[0]);
+      for (let i = 1; i < pts.length; i++) quad(pts[i - 1], pts[i]);
+    }
+    else { ctx.lineWidth = w; smoothPath(ctx, pts); ctx.stroke(); }
+    ctx.restore();
   }
   function redrawInk() {
     const wrap = $("#wrap"), cv = $("#ink"); if (!wrap || !cv) return;
@@ -582,7 +642,7 @@ textarea { width: 100%; min-height: 120px; resize: vertical; font: inherit; font
     }
     const ctx = cv.getContext("2d"); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h);
     const d = chData(S.pos.b, S.pos.c); if (!d || !d.ink.length) return;
-    const g = geom(); d.ink.forEach((s) => { if (s.p.length >= 2) paint(ctx, toPx(s, g), s, g.em); });
+    const g = geom(); d.ink.forEach((s) => { if (s.p.length >= 2) drawStroke(ctx, toPx(s, g), s, g.em / 20); });
   }
   window.addEventListener("resize", () => S && requestAnimationFrame(redrawInk));
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => S && redrawInk());
@@ -614,15 +674,16 @@ textarea { width: 100%; min-height: 120px; resize: vertical; font: inherit; font
 
   let drawing = null;
   const isStylusTouch = (e) => [...e.touches].some((t) => t.touchType === "stylus");
+  const pressure = (e) => (e.pointerType === "pen" && e.pressure ? e.pressure : .5);
   const blockPencilScroll = (e) => { if (S && S.prefs.pencil && e.target.closest && e.target.closest("#wrap") && isStylusTouch(e)) e.preventDefault(); };
   $("#reader").addEventListener("touchstart", blockPencilScroll, { passive: false });
   $("#reader").addEventListener("touchmove", blockPencilScroll, { passive: false });
 
   $("#reader").addEventListener("pointerdown", (e) => {
     if (!S || !S.prefs.pencil || e.pointerType === "touch" || e.button > 0 || !e.target.closest("#wrap")) return;
-    const g = geom(), x = e.clientX - g.wr.left, y = e.clientY - g.wr.top;
+    const g = geom(), x = e.clientX - g.wr.left, y = e.clientY - g.wr.top, o = pen();
     let a = 1; g.tops.forEach((t, v) => { if (t !== undefined && t <= y + 4) a = v; });
-    drawing = { id: newId(), a, tool, c: tool === "hl" ? hlColor : penColor, pts: [[x, y]], client: [[e.clientX, e.clientY]], g, moved: false, target: e.target, erased: { ink: [], hl: [] } };
+    drawing = { id: newId(), a, tool, st: o.st, w: o.w, c: tool === "hl" ? hlColor : o.c, pts: [[x, y, pressure(e)]], client: [[e.clientX, e.clientY]], g, moved: false, target: e.target, erased: { ink: [], hl: [] } };
     try { $("#reader").setPointerCapture(e.pointerId); } catch (err) {}
     if (tool === "eraser") eraseAt(e.clientX, e.clientY);
     e.preventDefault();
@@ -633,12 +694,12 @@ textarea { width: 100%; min-height: 120px; resize: vertical; font: inherit; font
     const ctx = $("#ink") && $("#ink").getContext("2d");
     for (const ev of (evs.length ? evs : [e])) {
       const x = ev.clientX - g.wr.left, y = ev.clientY - g.wr.top, last = drawing.pts[drawing.pts.length - 1];
-      const dist = Math.hypot(x - last[0], y - last[1]);
-      if (dist < 1.5) continue;
+      if (Math.hypot(x - last[0], y - last[1]) < 1.5) continue;
       if (!drawing.moved && Math.hypot(x - drawing.pts[0][0], y - drawing.pts[0][1]) > 5) drawing.moved = true;
-      drawing.pts.push([x, y]); drawing.client.push([ev.clientX, ev.clientY]);
+      const pt = [x, y, pressure(ev)];
+      drawing.pts.push(pt); drawing.client.push([ev.clientX, ev.clientY]);
       if (drawing.tool === "eraser") eraseAt(ev.clientX, ev.clientY);
-      else if (ctx && drawing.moved) { ctx.save(); styleFor(ctx, drawing, g.em); if (drawing.tool === "hl") ctx.globalAlpha = .18; ctx.beginPath(); ctx.moveTo(last[0], last[1]); ctx.lineTo(x, y); ctx.stroke(); ctx.restore(); }
+      else if (ctx && drawing.moved) drawStroke(ctx, [last, pt], drawing.tool === "hl" ? Object.assign({}, drawing, { tool: "pen", st: "ball", w: 6, c: "gold" }) : drawing, g.em / 20);
     }
     e.preventDefault();
   });
@@ -649,7 +710,7 @@ textarea { width: 100%; min-height: 120px; resize: vertical; font: inherit; font
     const dr = drawing, g = dr.g, d = chData(S.pos.b, S.pos.c); if (!d) return;
     const x = cx - g.wr.left, y = cy - g.wr.top, r = g.em * .7;
     const keep = d.ink.filter((s) => {
-      const hit = toPx(s, g).some(([px, py]) => Math.hypot(px - x, py - y) < r + (s.tool === "hl" ? g.em * .45 : 0));
+      const hit = toPx(s, g).some(([px, py]) => Math.hypot(px - x, py - y) < r + (s.tool === "hl" ? g.em * .45 : (s.w || 2) * g.em / 20));
       if (hit) dr.erased.ink.push(s);
       return !hit;
     });
@@ -677,8 +738,9 @@ textarea { width: 100%; min-height: 120px; resize: vertical; font: inherit; font
       if (rg) { addHighlight(rg, dr.c); return; }
     }
     const g = dr.g, top = g.tops[dr.a] || 0, p = [];
-    dr.pts.forEach(([x, y]) => p.push(Math.round(x / g.em * SCALE), Math.round((y - top) / g.em * SCALE)));
-    const s = { id: dr.id, a: dr.a, tool: dr.tool, c: dr.c, p };
+    dr.pts.forEach(([x, y, pr]) => p.push(Math.round(x / g.em * SCALE), Math.round((y - top) / g.em * SCALE), Math.round(pr * 100)));
+    const s = { id: dr.id, a: dr.a, tool: dr.tool, c: dr.c, k: 3, p };
+    if (dr.tool === "pen") { s.st = dr.st; s.w = dr.w; }
     chData(b, c, true).ink.push(s);
     pushUndo(id, { t: "ink", s }); save("ch", id); redrawInk();
   }
@@ -718,16 +780,119 @@ textarea { width: 100%; min-height: 120px; resize: vertical; font: inherit; font
   }
   function renderPalette() {
     document.querySelectorAll("#palette [data-tool]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.tool === tool));
-    const colors = tool === "pen" ? [["ink", "Black ink", "sw-ink"], ["red", "Red ink", "sw-red"], ["blue", "Blue ink", "sw-blue"], ["gold", "Gold ink", "sw-pgold"]]
-      : tool === "hl" ? [["gold", "Gold", "sw-gold"], ["sage", "Green", "sw-sage"], ["sky", "Blue", "sw-sky"], ["rose", "Pink", "sw-rose"]] : [];
-    const cur = tool === "pen" ? penColor : hlColor;
-    $("#palColors").innerHTML = colors.map(([v, l, cls]) => `<button class="swatch ${cls}" data-color="${v}" aria-label="${l}" aria-pressed="${v === cur}"></button>`).join("")
-      || `<span class="ref" style="color:var(--muted)">Touch ink or a highlight to erase it</span>`;
+    const colors = tool === "hl" ? [["gold", "Gold", "sw-gold"], ["sage", "Green", "sw-sage"], ["sky", "Blue", "sw-sky"], ["rose", "Pink", "sw-rose"]] : [];
+    $("#palColors").innerHTML = tool === "eraser" ? `<span class="ref" style="color:var(--muted)">Touch ink or a highlight to erase it</span>`
+      : colors.map(([v, l, cls]) => `<button class="swatch ${cls}" data-color="${v}" aria-label="${l}" aria-pressed="${v === hlColor}"></button>`).join("");
+    $("#palPen").hidden = tool !== "pen";
+    if (S && tool === "pen") $("#palPen").innerHTML = penOptsHTML();
   }
+  function penOptsHTML() {
+    const p = S.prefs;
+    return `<span class="penopts"><select class="pen-style" aria-label="Pen style">${STYLES.map(([v, l]) => `<option value="${v}"${(p.penStyle || "ball") === v ? " selected" : ""}>${l}</option>`).join("")}</select>
+      <span class="sizes" role="group" aria-label="Pen thickness">${SIZES.map((w, i) => `<button class="size" data-size="${i}" aria-label="Thickness ${i + 1} of ${SIZES.length}" aria-pressed="${p.penSize === i}"><i style="width:${3 + i * 3}px;height:${3 + i * 3}px"></i></button>`).join("")}</span>
+      <span class="pcolors">${PEN_COLORS.map(([v, l, cls]) => `<button class="swatch ${cls}" data-pcolor="${v}" aria-label="${l}" aria-pressed="${(p.penColor || "ink") === v}"></button>`).join("")}</span></span>`;
+  }
+  function syncPenOpts() { document.querySelectorAll(".penopts").forEach((el) => { el.outerHTML = penOptsHTML(); }); }
+  document.addEventListener("click", (e) => {
+    const sz = e.target.closest(".penopts [data-size]"); if (sz) { S.prefs.penSize = +sz.dataset.size; save("state"); syncPenOpts(); return; }
+    const pc = e.target.closest(".penopts [data-pcolor]"); if (pc) { S.prefs.penColor = pc.dataset.pcolor; save("state"); syncPenOpts(); }
+  });
+  document.addEventListener("change", (e) => { if (e.target.matches && e.target.matches(".pen-style")) { S.prefs.penStyle = e.target.value; save("state"); syncPenOpts(); } });
   $("#palette").addEventListener("click", (e) => {
     const t = e.target.closest("[data-tool]"); if (t) { tool = t.dataset.tool; renderPalette(); return; }
-    const c = e.target.closest("[data-color]"); if (c) { if (tool === "pen") penColor = c.dataset.color; else hlColor = c.dataset.color; renderPalette(); }
+    const c = e.target.closest("[data-color]"); if (c) { hlColor = c.dataset.color; renderPalette(); }
   });
+
+  // ---------- Handwriting pad: notes and journal stay as freehand ink ----------
+  const PAD_N = 1000;   // stored units across the pad's width
+  function mountPad(host, model, onChange) {
+    host.innerHTML = `<div class="pad-bar"><span class="seg"><button data-pt="pen" aria-pressed="true">Pen</button><button data-pt="eraser" aria-pressed="false">Eraser</button></span>${penOptsHTML()}
+      <span class="pad-actions"><button class="icon-btn" data-pa="undo" aria-label="Undo">${ICON_UNDO}</button><button class="btn quiet small" data-pa="clear">Clear</button></span></div><div class="pad"><canvas></canvas></div>`;
+    const pad = host.querySelector(".pad"), cv = pad.querySelector("canvas"), ctx = cv.getContext("2d");
+    let mode = "pen", cur = null, clearArmed = false;
+    const hist = [], W = () => pad.clientWidth, U = () => W() / 600;
+    const pts = (s) => { const w = W(), out = []; for (let i = 0; i < s.p.length; i += 3) out.push([s.p[i] / PAD_N * w, s.p[i + 1] / PAD_N * w, s.p[i + 2] / 100]); return out; };
+    const draw = () => { ctx.clearRect(0, 0, cv.width, cv.height); model.s.forEach((s) => drawStroke(ctx, pts(s), s, U())); };
+    function layout() {
+      const w = W(); if (!w) return;
+      let maxY = 0; model.s.forEach((s) => { for (let i = 1; i < s.p.length; i += 3) maxY = Math.max(maxY, s.p[i]); });
+      const h = Math.max(260, Math.ceil(maxY / PAD_N * w + 160)), dpr = window.devicePixelRatio || 1;
+      pad.style.height = h + "px";
+      cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); cv.style.width = w + "px"; cv.style.height = h + "px";
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); draw();
+    }
+    const at = (e) => { const r = pad.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top, pressure(e)]; };
+    function erase(x, y) {
+      const gone = [];
+      model.s = model.s.filter((s) => { const hit = pts(s).some(([px, py]) => Math.hypot(px - x, py - y) < 12 + (s.w || 2) * U()); if (hit) gone.push(s); return !hit; });
+      if (gone.length) { hist.push({ t: "erase", s: gone }); draw(); }
+      return gone.length;
+    }
+    const stylus = (e) => { if (isStylusTouch(e)) e.preventDefault(); };
+    pad.addEventListener("touchstart", stylus, { passive: false });
+    pad.addEventListener("touchmove", stylus, { passive: false });
+    pad.addEventListener("pointerdown", (e) => {
+      if (e.pointerType === "touch" || e.button > 0) return;
+      e.preventDefault(); try { pad.setPointerCapture(e.pointerId); } catch (x) {}
+      const p = at(e);
+      if (mode === "eraser") { cur = { erase: true, n: erase(p[0], p[1]) }; return; }
+      const o = pen(); cur = { tool: "pen", st: o.st, c: o.c, w: o.w, pts: [p] };
+    });
+    pad.addEventListener("pointermove", (e) => {
+      if (!cur) return;
+      const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
+      for (const ev of (evs.length ? evs : [e])) {
+        const p = at(ev);
+        if (cur.erase) { cur.n += erase(p[0], p[1]); continue; }
+        const last = cur.pts[cur.pts.length - 1]; if (Math.hypot(p[0] - last[0], p[1] - last[1]) < 1.2) continue;
+        cur.pts.push(p); drawStroke(ctx, [last, p], cur, U());
+      }
+      e.preventDefault();
+    });
+    const end = () => {
+      const c = cur; cur = null; if (!c) return;
+      if (c.erase) { if (c.n) onChange(); return; }
+      const w = W(), p = [];
+      c.pts.forEach(([x, y, pr]) => p.push(Math.round(x / w * PAD_N), Math.round(y / w * PAD_N), Math.round(pr * 100)));
+      const s = { id: newId(), tool: "pen", st: c.st, c: c.c, w: c.w, p };
+      model.s.push(s); hist.push({ t: "add", s }); onChange();
+      if (c.pts.some(([, y]) => y > pad.clientHeight - 120)) layout(); else draw();
+    };
+    pad.addEventListener("pointerup", end); pad.addEventListener("pointercancel", end);
+    host.querySelector(".pad-bar").addEventListener("click", (e) => {
+      const pt = e.target.closest("[data-pt]");
+      if (pt) { mode = pt.dataset.pt; host.querySelectorAll("[data-pt]").forEach((b) => b.setAttribute("aria-pressed", b === pt)); return; }
+      const pa = e.target.closest("[data-pa]"); if (!pa) return;
+      if (pa.dataset.pa === "undo") { const a = hist.pop(); if (!a) return; if (a.t === "add") model.s = model.s.filter((s) => s !== a.s); else model.s.push(...a.s); onChange(); layout(); }
+      if (pa.dataset.pa === "clear") {
+        if (!model.s.length) return;
+        if (!clearArmed) { clearArmed = true; pa.textContent = "Tap again to clear"; setTimeout(() => { clearArmed = false; pa.textContent = "Clear"; }, 3000); return; }
+        hist.push({ t: "erase", s: model.s }); model.s = []; onChange(); layout(); clearArmed = false; pa.textContent = "Clear";
+      }
+    });
+    if (window.ResizeObserver) { let lw = 0; new ResizeObserver(() => { if (pad.clientWidth && pad.clientWidth !== lw) { lw = pad.clientWidth; layout(); } }).observe(pad); }
+    requestAnimationFrame(layout);
+  }
+  // A note with a handwriting pad, plus an optional typed version
+  function noteEditor(host, o) {
+    const model = { s: o.ink && Array.isArray(o.ink.s) ? o.ink.s : [] };
+    const write = !(o.text && !model.s.length);
+    host.innerHTML = `<div class="field-head"><label>${o.label}</label><span class="seg"><button data-m="write" aria-pressed="${write}">Handwrite</button><button data-m="type" aria-pressed="${!write}">Type</button></span></div>
+      <div class="ne-write"${write ? "" : " hidden"}></div>
+      <textarea class="ne-type"${write ? " hidden" : ""} placeholder="${esc(o.placeholder || "")}" aria-label="${esc(o.label)}">${esc(o.text || "")}</textarea>
+      <small>Write with Apple Pencil exactly as you would on paper; your finger scrolls. Your handwriting is kept as you wrote it.</small>`;
+    mountPad(host.querySelector(".ne-write"), model, () => o.onInk(model.s.length ? { s: model.s } : null));
+    const ta = host.querySelector(".ne-type"); let t;
+    ta.addEventListener("input", () => { clearTimeout(t); t = setTimeout(() => o.onText(ta.value.trim()), 400); });
+    host.querySelector(".field-head .seg").onclick = (e) => {
+      const b = e.target.closest("[data-m]"); if (!b) return;
+      const w = b.dataset.m === "write";
+      host.querySelector(".ne-write").hidden = !w; ta.hidden = w;
+      host.querySelectorAll("[data-m]").forEach((x) => x.setAttribute("aria-pressed", x === b));
+      if (!w) ta.focus();
+    };
+    return { flush() { clearTimeout(t); o.onText(ta.value.trim()); } };
+  }
   $("#palUndo").onclick = doUndo;
   $("#palOff").onclick = () => togglePencil(false);
   $("#btnPencil").onclick = () => togglePencil(!S.prefs.pencil);
@@ -822,7 +987,7 @@ textarea { width: 100%; min-height: 120px; resize: vertical; font: inherit; font
     const g = e.target.closest("[data-go]");
     if (g) {
       const [b, c, v] = g.dataset.go.split(".").map(Number);
-      if (g.dataset.plan) { S.plan.done[chId(b, c)] = 1; save("state"); }
+      if (g.dataset.plan) { const ps = planState(); ps.done[chId(b, c)] = 1; if (!ps.start) ps.start = new Date().toISOString().slice(0, 10); save("state"); }
       go(b, c, v);
     }
   });
@@ -893,10 +1058,11 @@ textarea { width: 100%; min-height: 120px; resize: vertical; font: inherit; font
       <blockquote class="quote">${esc(rangeText(b, c, h))}</blockquote>
       <div class="links"><a href="${ampUrl(ref)}" target="_blank" rel="noopener">Read in the Amplified Bible ↗</a><span class="byline">King James Version above</span></div>
       <div id="ctx"></div>
-      <div class="field"><label for="hlNote">My note</label><textarea id="hlNote" placeholder="What is God showing you here?">${esc(h.note || "")}</textarea>
-        <small>With Apple Pencil you can write straight into this box and iPad turns your handwriting into text.</small></div>
+      <div class="field" id="hlNoteBox"></div>
       <div class="btn-row"><button class="btn danger" id="hlDelete">Remove highlight</button></div>`;
-    let nt; $("#hlNote").addEventListener("input", (e) => { clearTimeout(nt); const val = e.target.value; nt = setTimeout(() => { h.note = val; save("ch", cid); }, 400); });
+    noteEditor($("#hlNoteBox"), { label: "My note", text: h.note, ink: h.ink, placeholder: "What is God showing you here?",
+      onText: (v) => { if (v) h.note = v; else delete h.note; save("ch", cid); },
+      onInk: (ink) => { if (ink) h.ink = ink; else delete h.ink; save("ch", cid); } });
     $("#hlDelete").onclick = () => {
       const d = DATA.ch[cid]; d.hl = d.hl.filter((x) => x !== h); pushUndo(cid, { t: "erase", ink: [], hl: [h] });
       save("ch", cid); closeSheet(); if (cid === chId(S.pos.b, S.pos.c)) render(); toast("Highlight removed", "Undo", doUndo, 5000);
@@ -964,23 +1130,22 @@ Draw on broadly held Christian scholarship; where traditions read it differently
 
   // ---------- Notes ----------
   function openNote(v) {
-    const { b, c } = S.pos, cid = chId(b, c), d = chData(b, c), ref = label(b, c) + ":" + v;
+    const { b, c } = S.pos, cid = chId(b, c), d = chData(b, c), ref = label(b, c) + ":" + v, cur = (d && d.notes[v]) || {};
     openSheet("note");
     $("#sheetTitle").textContent = "Note · " + ref;
     $("#sheetBody").innerHTML = `<blockquote class="quote">${esc(verseText(b, c, v))}</blockquote>
-      <div class="field"><label for="noteText">My note</label><textarea id="noteText" placeholder="Write your thoughts, a prayer, or what this verse means to you">${esc((d && d.notes[v] && d.notes[v].text) || "")}</textarea>
-      <small>With Apple Pencil you can write straight into this box and iPad turns your handwriting into text. To write in the margins instead, turn on the Pencil in the toolbar.</small></div>
+      <div class="field" id="noteBox"></div>
       <div class="btn-row"><button class="btn" id="noteDone">Done</button><button class="btn danger" id="noteDel">Delete note</button></div>`;
-    const ta = $("#noteText"); let nt;
-    const commit = () => {
-      const val = ta.value.trim(), dd = chData(b, c, true), had = !!dd.notes[v];
-      if (val) dd.notes[v] = { text: val, t: Date.now() }; else delete dd.notes[v];
-      save("ch", cid); if (had !== !!val && cid === chId(S.pos.b, S.pos.c)) render();
+    const update = (patch) => {
+      const dd = chData(b, c, true), had = !!dd.notes[v], n = Object.assign({}, dd.notes[v] || {}, patch, { t: Date.now() });
+      if (!n.text) delete n.text; if (!n.ink) delete n.ink;
+      if (n.text || n.ink) dd.notes[v] = n; else delete dd.notes[v];
+      save("ch", cid); if (had !== !!dd.notes[v] && cid === chId(S.pos.b, S.pos.c)) render();
     };
-    ta.addEventListener("input", () => { clearTimeout(nt); nt = setTimeout(commit, 400); });
-    $("#noteDone").onclick = () => { clearTimeout(nt); commit(); closeSheet(); };
-    $("#noteDel").onclick = () => { clearTimeout(nt); ta.value = ""; commit(); closeSheet(); toast("Note deleted"); };
-    setTimeout(() => ta.focus(), 60);
+    const ne = noteEditor($("#noteBox"), { label: "My note", text: cur.text, ink: cur.ink, placeholder: "Write your thoughts, a prayer, or what this verse means to you",
+      onText: (val) => update({ text: val }), onInk: (ink) => update({ ink }) });
+    $("#noteDone").onclick = () => { ne.flush(); closeSheet(); };
+    $("#noteDel").onclick = () => { const dd = chData(b, c, true); delete dd.notes[v]; save("ch", cid); render(); closeSheet(); toast("Note deleted"); };
   }
 
   // ---------- Saved ----------
@@ -994,7 +1159,7 @@ Draw on broadly held Christian scholarship; where traditions read it differently
     if (tab === "hls") {
       sortedChapters().forEach(([id, b, c]) => DATA.ch[id].hl.slice().sort((x, y) => x.v1 - y.v1 || x.o1 - y.o1).forEach((x) => {
         const q = rangeText(b, c, x);
-        h += `<button class="result" data-study="${id}|${x.id}"><b><i class="dot" style="background:var(--hl-${x.c})"></i>${esc(rangeRef(b, c, x))}${x.ctx ? `<span class="pill">Study notes</span>` : ""}${x.note ? `<span class="pill">Note</span>` : ""}</b><span>${esc(q.length > 220 ? q.slice(0, 220) + "…" : q)}</span>${x.note ? `<em>${esc(x.note)}</em>` : ""}</button>`;
+        h += `<button class="result" data-study="${id}|${x.id}"><b><i class="dot" style="background:var(--hl-${x.c})"></i>${esc(rangeRef(b, c, x))}${x.ctx ? `<span class="pill">Study notes</span>` : ""}${x.note || x.ink ? `<span class="pill">Note</span>` : ""}</b><span>${esc(q.length > 220 ? q.slice(0, 220) + "…" : q)}</span>${x.note ? `<em>${esc(x.note)}</em>` : x.ink ? `<em>Handwritten note</em>` : ""}</button>`;
       }));
       if (!h) h = empty("No highlights yet", "Tap a verse and pick a colour, or turn on the Pencil and sweep the highlighter across the words.");
     }
@@ -1002,9 +1167,9 @@ Draw on broadly held Christian scholarship; where traditions read it differently
       sortedChapters().forEach(([id, b, c]) => {
         const d = DATA.ch[id];
         Object.keys(d.notes).map(Number).sort((x, y) => x - y).forEach((v) =>
-          h += `<button class="result" data-opennote="${b}.${c}.${v}"><b>${esc(label(b, c))}:${v}</b><em>${esc(d.notes[v].text)}</em></button>`);
-        d.hl.filter((x) => x.note).forEach((x) =>
-          h += `<button class="result" data-study="${id}|${x.id}"><b><i class="dot" style="background:var(--hl-${x.c})"></i>${esc(rangeRef(b, c, x))}</b><em>${esc(x.note)}</em></button>`);
+          h += `<button class="result" data-opennote="${b}.${c}.${v}"><b>${esc(label(b, c))}:${v}</b><em>${esc(d.notes[v].text || "Handwritten note")}</em></button>`);
+        d.hl.filter((x) => x.note || x.ink).forEach((x) =>
+          h += `<button class="result" data-study="${id}|${x.id}"><b><i class="dot" style="background:var(--hl-${x.c})"></i>${esc(rangeRef(b, c, x))}</b><em>${esc(x.note || "Handwritten note")}</em></button>`);
         const pen = d.ink.filter((s) => s.tool === "pen").length;
         if (pen) h += `<button class="result" data-go="${b}.${c}.0"><b>${esc(label(b, c))}</b><em>Handwritten notes · ${pen} stroke${pen === 1 ? "" : "s"}</em></button>`;
       });
@@ -1019,66 +1184,128 @@ Draw on broadly held Christian scholarship; where traditions read it differently
   }
   const empty = (t, s) => `<div class="empty"><strong>${t}</strong>${s}</div>`;
 
-  // ---------- Reading plan: through the Bible in a year ----------
-  const PLAN_DAYS = 365;
-  function dayReadings(d) {
-    const ot = OT.slice(Math.floor(OT.length * (d - 1) / PLAN_DAYS), Math.floor(OT.length * d / PLAN_DAYS));
-    const nt = NT.slice(Math.floor(NT.length * (d - 1) / PLAN_DAYS), Math.floor(NT.length * d / PLAN_DAYS));
-    return ot.concat(nt);
+  // ---------- Reading plans ----------
+  const PLAN_DEFS = {
+    year: { name: "Bible in a Year", eyebrow: "Through the Bible in a year",
+      blurb: "About 3 chapters a day: Genesis to Malachi alongside Matthew to Revelation.",
+      focus: "a one-year read-through of the whole Bible (Old Testament and New Testament each day)",
+      themes: "3 themes, one sentence each, noting links between the Old and New Testament readings where they exist",
+      apply: "2 sentences on living this out today" },
+    jesus: { name: "The Life of Jesus", eyebrow: "The Life of Jesus · 40 days",
+      blurb: "Forty days with Jesus: the promise of his coming, his birth, teaching and miracles, his death and resurrection, and his glory.",
+      focus: "\"The Life of Jesus\", a 40-day study of who Jesus is: his identity, life, teaching, miracles, death and resurrection",
+      themes: "3 themes, one sentence each, showing what today's reading reveals about who Jesus is and why it matters",
+      apply: "2 sentences on following Jesus in light of this today",
+      days: [
+        ["The Word made flesh", "John 1"], ["The promised Servant", "Isaiah 53"], ["Born in Bethlehem", "Luke 2"],
+        ["Wise men and the flight to Egypt", "Matthew 2"], ["Baptised and tempted", "Matthew 3; Matthew 4"], ["The first sign at Cana", "John 2"],
+        ["You must be born again", "John 3"], ["The woman at the well", "John 4"], ["The Sermon on the Mount: blessed are you", "Matthew 5"],
+        ["The Sermon on the Mount: prayer and treasure", "Matthew 6"], ["The Sermon on the Mount: ask, seek, knock", "Matthew 7"], ["Calming the storm, healing the broken", "Mark 4; Mark 5"],
+        ["The Bread of Life", "John 6"], ["Parables of the kingdom", "Matthew 13"], ["Walking on water", "Matthew 14"],
+        ["Who do you say I am?", "Matthew 16"], ["The Transfiguration", "Matthew 17"], ["The Good Samaritan, Mary and Martha", "Luke 10"],
+        ["The Light of the World", "John 8"], ["The man born blind", "John 9"], ["The Good Shepherd", "John 10"],
+        ["Lazarus raised", "John 11"], ["The lost sheep, coin and son", "Luke 15"], ["Zacchaeus", "Luke 19"],
+        ["The triumphal entry", "Mark 11"], ["The greatest commandment", "Mark 12"], ["Watch and be ready", "Matthew 24"],
+        ["Faithful servants", "Matthew 25"], ["Washing the disciples' feet", "John 13"], ["The way, the truth and the life", "John 14"],
+        ["The vine and the branches", "John 15"], ["The Spirit promised", "John 16"], ["Jesus prays for his own", "John 17"],
+        ["Gethsemane and the arrest", "Matthew 26"], ["The crucifixion", "Matthew 27"], ["It is finished", "John 19"],
+        ["He is risen", "Luke 24"], ["Peter restored", "John 21"], ["The ascension", "Acts 1"], ["Jesus in glory", "Revelation 1"],
+      ] },
+    men: { name: "Faith for Men", eyebrow: "Faith for Men · 32 days",
+      blurb: "Thirty-two days with the men of the Bible and the teaching that shapes a man's faith, integrity, work, marriage, fatherhood and friendships.",
+      focus: "\"Faith for Men\", a 32-day study for Christian men drawing on the men of the Bible and its teaching for men",
+      themes: "3 themes, one sentence each, drawn from the passage for a man's walk with God",
+      apply: "2-3 sentences of practical, specific application for a man today, touching on areas such as integrity, work and provision, marriage, fatherhood, friendship, leadership, temptation or courage as the passage fits",
+      days: [
+        ["Made in God's image, given work", "Genesis 2"], ["Joseph: integrity under pressure", "Genesis 39"], ["Joseph: the power of forgiveness", "Genesis 50"],
+        ["Moses: called despite excuses", "Exodus 3"], ["Joshua: be strong and courageous", "Joshua 1"], ["As for me and my house", "Joshua 24"],
+        ["Gideon: from fear to faith", "Judges 6"], ["Boaz: a man of honour", "Ruth 2"], ["David and Goliath", "1 Samuel 17"],
+        ["David and Jonathan: true friendship", "1 Samuel 20"], ["David's fall", "2 Samuel 11"], ["David's repentance", "Psalm 51"],
+        ["Solomon asks for wisdom", "1 Kings 3"], ["Elijah: exhaustion and renewal", "1 Kings 19"], ["Nehemiah: leading through opposition", "Nehemiah 4"],
+        ["Job: faith in loss", "Job 1"], ["The Lord is my shepherd", "Psalm 23"], ["Wisdom from a father", "Proverbs 3"],
+        ["Guarding your heart and marriage", "Proverbs 5"], ["Work, diligence and the sluggard", "Proverbs 6"], ["Daniel: a man of conviction", "Daniel 1"],
+        ["Daniel: prayer under pressure", "Daniel 6"], ["Building on the rock", "Matthew 7"], ["Peter: failure and restoration", "John 21"],
+        ["A living sacrifice", "Romans 12"], ["What love really is", "1 Corinthians 13"], ["Husbands who love like Christ", "Ephesians 5"],
+        ["Fathers and the armour of God", "Ephesians 6"], ["Contentment and strength", "Philippians 4"], ["Fight the good fight", "1 Timothy 6"],
+        ["Faith that works", "James 1"], ["Taming the tongue", "James 3"],
+      ] },
+  };
+  const planId = () => (PLAN_DEFS[S.activePlan] ? S.activePlan : "year");
+  const planState = (id = planId()) => (S.plans[id] = S.plans[id] || { start: null, done: {} });
+  const planLength = (id = planId()) => (id === "year" ? 365 : PLAN_DEFS[id].days.length);
+  const dayTitle = (d, id = planId()) => (id === "year" ? "" : PLAN_DEFS[id].days[d - 1][0]);
+  const studyId = (d, id = planId()) => (id === "year" ? "day-" + d : id + "-" + d);
+  const readingCache = {};
+  function dayReadings(d, id = planId()) {
+    if (id === "year") {
+      const n = 365;
+      const ot = OT.slice(Math.floor(OT.length * (d - 1) / n), Math.floor(OT.length * d / n));
+      const nt = NT.slice(Math.floor(NT.length * (d - 1) / n), Math.floor(NT.length * d / n));
+      return ot.concat(nt);
+    }
+    const k = id + d;
+    return readingCache[k] || (readingCache[k] = PLAN_DEFS[id].days[d - 1][1].split(";").map((r) => parseRef(r.trim())).filter(Boolean).map((r) => [r.b, r.c]));
   }
   function groupLabel(list) {
     const groups = [];
     list.forEach(([b, c]) => { const g = groups[groups.length - 1]; if (g && g.b === b && g.to === c - 1) g.to = c; else groups.push({ b, from: c, to: c }); });
     return groups.map((g) => (g.b === 18 ? (g.from === g.to ? "Psalm" : "Psalms") : BOOKS[g.b][0]) + " " + (g.from + 1) + (g.to > g.from ? "–" + (g.to + 1) : "")).join(" · ");
   }
-  const dayDone = (d) => dayReadings(d).every(([b, c]) => S.plan.done[chId(b, c)]);
-  function currentDay() { for (let d = 1; d <= PLAN_DAYS; d++) if (!dayDone(d)) return d; return PLAN_DAYS; }
-  function daysComplete() { let n = 0; for (let d = 1; d <= PLAN_DAYS; d++) if (dayDone(d)) n++; return n; }
+  const dayDone = (d, id = planId()) => dayReadings(d, id).every(([b, c]) => planState(id).done[chId(b, c)]);
+  function currentDay() { const n = planLength(); for (let d = 1; d <= n; d++) if (!dayDone(d)) return d; return n; }
+  function daysComplete() { const n = planLength(); let k = 0; for (let d = 1; d <= n; d++) if (dayDone(d)) k++; return k; }
 
-  async function loadStudy(d) {
-    const sid = "day-" + d;
+  async function loadStudy(sid) {
     if (DATA.study[sid]) return DATA.study[sid];
     let v = null;
     if (BASE) { try { const s = await BASE.collection("study").doc(sid).get(); if (s.exists) v = clone(s.data()); } catch (e) {} }
     else v = local.get("kjv2.study." + sid);
-    if (v) DATA.study[sid] = v;
+    if (v && !DATA.study[sid]) DATA.study[sid] = v;
     return DATA.study[sid] || null;
   }
+  const studyDoc = (sid) => (DATA.study[sid] = DATA.study[sid] || {});
   function renderToday() {
-    const d = planDay, list = dayReadings(d), started = !!S.plan.start, done = daysComplete();
-    let h = `<div class="plan-head"><span class="eyebrow">Through the Bible in a year</span>
-      <h3>Day ${d} <span style="color:var(--muted);font-size:15px;font-family:var(--f-ui);letter-spacing:0">of ${PLAN_DAYS}</span></h3>
+    const pid = planId(), def = PLAN_DEFS[pid], n = planLength(), d = Math.min(planDay, n), ps = planState();
+    const list = dayReadings(d), started = !!ps.start, done = daysComplete(), sid = studyId(d), title = dayTitle(d);
+    let h = `<div class="seg plan-pick" id="planPick">${Object.keys(PLAN_DEFS).map((id) => `<button data-pid="${id}" aria-pressed="${id === pid}">${PLAN_DEFS[id].name}</button>`).join("")}</div>
+      <div class="plan-head"><span class="eyebrow">${def.eyebrow}</span>
+      <h3>Day ${d} <span style="color:var(--muted);font-size:15px;font-family:var(--f-ui);letter-spacing:0">of ${n}</span></h3>
+      ${title ? `<div class="day-title">${esc(title)}</div>` : ""}
       <div class="progress">${groupLabel(list)}</div>
-      <div class="progress-bar"><i style="width:${(done / PLAN_DAYS * 100).toFixed(1)}%"></i></div>
-      <div class="progress">${started ? `${done} day${done === 1 ? "" : "s"} complete · started ${new Date(S.plan.start + "T12:00:00").toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })}` : "About 3 chapters a day: Genesis to Malachi alongside Matthew to Revelation."}</div></div>`;
-    if (!started) h += `<div class="btn-row" style="margin-top:8px"><button class="btn" id="planStart">Start the plan today</button></div>`;
-    h += `<div class="plan-nav"><button class="btn quiet" id="dayPrev" ${d <= 1 ? "disabled" : ""}>‹ Day ${Math.max(1, d - 1)}</button><button class="btn quiet" id="dayNext" ${d >= PLAN_DAYS ? "disabled" : ""}>Day ${Math.min(PLAN_DAYS, d + 1)} ›</button></div>`;
+      <div class="progress-bar"><i style="width:${(done / n * 100).toFixed(1)}%"></i></div>
+      <div class="progress">${started ? `${done} day${done === 1 ? "" : "s"} complete · started ${new Date(ps.start + "T12:00:00").toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })}` : esc(def.blurb)}</div></div>`;
+    if (!started) h += `<div class="btn-row" style="margin-top:8px"><button class="btn" id="planStart">Start this plan today</button></div>`;
+    h += `<div class="plan-nav"><button class="btn quiet" id="dayPrev" ${d <= 1 ? "disabled" : ""}>‹ Day ${Math.max(1, d - 1)}</button><button class="btn quiet" id="dayNext" ${d >= n ? "disabled" : ""}>Day ${Math.min(n, d + 1)} ›</button></div>`;
     h += list.map(([b, c]) => {
-      const ok = !!S.plan.done[chId(b, c)];
+      const ok = !!ps.done[chId(b, c)];
       return `<div class="plan-row${ok ? " done" : ""}"><button class="tick" data-toggle="${b}-${c}" aria-label="Mark ${esc(label(b, c))} as ${ok ? "not read" : "read"}"><span class="check">${ICON_CHECK}</span></button>
         <button class="reading" data-go="${b}.${c}.0" data-plan="1"><span>${esc(label(b, c))}</span><em>${BOOKS[b][1][c].length} verses · Read ›</em></button></div>`;
     }).join("");
-    h += `<div id="guide"><div class="thinking"><i></i>Loading your study for day ${d}…</div></div>
-      <div class="field"><label for="journal">My reflections for day ${d}</label><textarea id="journal" placeholder="What stood out to you today? What will you take into your day?"></textarea>
-      <small>Saved automatically. With Apple Pencil you can handwrite here and iPad converts it to text.</small></div>`;
+    h += `<div id="guide"><div class="thinking"><i></i>Loading your study for day ${d}…</div></div><div class="field" id="journalBox"></div>`;
     $("#sheetBody").innerHTML = h;
-    const sp = $("#planStart"); if (sp) sp.onclick = () => { S.plan.start = new Date().toISOString().slice(0, 10); save("state"); renderToday(); toast("Plan started. Day 1 is ready."); };
+    $("#planPick").onclick = (e) => {
+      const b = e.target.closest("[data-pid]"); if (!b) return;
+      S.activePlan = b.dataset.pid; save("state"); planDay = currentDay(); renderToday(); $("#sheetBody").scrollTop = 0;
+    };
+    const sp = $("#planStart"); if (sp) sp.onclick = () => { ps.start = new Date().toISOString().slice(0, 10); save("state"); renderToday(); toast(def.name + " started. Day 1 is ready."); };
     $("#dayPrev").onclick = () => { planDay = Math.max(1, d - 1); renderToday(); };
-    $("#dayNext").onclick = () => { planDay = Math.min(PLAN_DAYS, d + 1); renderToday(); };
+    $("#dayNext").onclick = () => { planDay = Math.min(n, d + 1); renderToday(); };
     $("#sheetBody").querySelectorAll("[data-toggle]").forEach((btn) => btn.onclick = (e) => {
       e.stopPropagation(); const k = btn.dataset.toggle;
-      if (S.plan.done[k]) delete S.plan.done[k]; else S.plan.done[k] = 1;
-      if (!S.plan.start) S.plan.start = new Date().toISOString().slice(0, 10);
+      if (ps.done[k]) delete ps.done[k]; else ps.done[k] = 1;
+      if (!ps.start) ps.start = new Date().toISOString().slice(0, 10);
       save("state"); renderToday();
     });
-    loadStudy(d).then((st) => {
-      if (sheetMode !== "today" || planDay !== d) return;
-      const j = $("#journal"); j.value = (st && st.journal) || "";
-      let jt; j.addEventListener("input", () => { clearTimeout(jt); jt = setTimeout(() => { const s2 = DATA.study["day-" + d] = DATA.study["day-" + d] || {}; s2.journal = j.value; save("study", "day-" + d); }, 500); });
+    loadStudy(sid).then((st) => {
+      if (sheetMode !== "today" || planDay !== d || planId() !== pid) return;
+      noteEditor($("#journalBox"), { label: `My reflections for day ${d}`, text: st && st.journal, ink: st && st.jink,
+        placeholder: "What stood out to you today? What will you take into your day?",
+        onText: (v) => { const s2 = studyDoc(sid); if (v) s2.journal = v; else delete s2.journal; save("study", sid); },
+        onInk: (ink) => { const s2 = studyDoc(sid); if (ink) s2.jink = ink; else delete s2.jink; save("study", sid); } });
       renderGuide(d, st);
     });
   }
-  function soapHTML(d) {
+  function soapHTML() {
     return `<div class="study"><section><h3>How to study today</h3><ol>
       <li><b>Scripture.</b> Read today's chapters slowly. Highlight the verse that stands out most.</li>
       <li><b>Observation.</b> Who is speaking, to whom, and what is happening? What does it show about God?</li>
@@ -1098,44 +1325,44 @@ Draw on broadly held Christian scholarship; where traditions read it differently
       ${g.prayer ? `<section><h3>Prayer</h3><p style="font-style:italic">${esc(g.prayer)}</p></section>` : ""}
       <p class="byline">Study guide written by Claude for day ${g.day || ""} and saved to your plan.</p></div>`;
   }
+  const guideVisible = (pid, d) => sheetMode === "today" && planDay === d && planId() === pid;
   function renderGuide(d, st) {
     const box = $("#guide"); if (!box) return;
     if (st && st.guide) { box.innerHTML = guideHTML(st.guide); return; }
-    if (!SAMPLE) { box.innerHTML = soapHTML(d); return; }
-    if (pendingGuide.has(d)) { makeGuide(d); return; }
-    box.innerHTML = `<div class="btn-row"><button class="btn" id="mkGuide">Prepare today's study guide</button></div>${soapHTML(d)}`;
+    if (!SAMPLE) { box.innerHTML = soapHTML(); return; }
+    if (pendingGuide.has(studyId(d))) { makeGuide(d); return; }
+    box.innerHTML = `<div class="btn-row"><button class="btn" id="mkGuide">Prepare today's study guide</button></div>${soapHTML()}`;
     $("#mkGuide").onclick = () => makeGuide(d);
   }
   function makeGuide(d) {
-    const box = $("#guide"), refs = groupLabel(dayReadings(d));
+    const pid = planId(), def = PLAN_DEFS[pid], sid = studyId(d), box = $("#guide"), refs = groupLabel(dayReadings(d)), title = dayTitle(d);
     box.innerHTML = `<div class="thinking"><i></i>Preparing a study guide for ${esc(refs)}…</div>`;
-    if (pendingGuide.has(d)) return;
-    pendingGuide.add(d);
-    const prompt = `Write a daily Bible study guide for day ${d} of a one-year read-through of the whole Bible (Old Testament and New Testament each day). Today's readings: ${refs}. The reader uses the King James Version and loves the depth of the Amplified Bible.
+    if (pendingGuide.has(sid)) return;
+    pendingGuide.add(sid);
+    const prompt = `Write a daily Bible study guide for day ${d} of ${def.focus}.${title ? ` Today's theme: "${title}".` : ""} Today's reading: ${refs}. The reader uses the King James Version and loves the depth of the Amplified Bible.
 
 Reply with only a JSON object of this shape:
 {"title": "", "overview": "", "background": "", "themes": ["", "", ""], "keyVerse": {"ref": "", "why": ""}, "words": [{"word": "", "original": "", "meaning": ""}], "questions": ["", "", "", ""], "application": "", "prayer": ""}
 
-- title: a short title that ties today's readings together.
-- overview: 3-5 sentences on what happens or is taught in today's chapters, covering each reading.
+- title: a short title for today's study.
+- overview: 3-5 sentences on what happens or is taught in today's reading.
 - background: 2-3 sentences of historical, cultural or literary context.
-- themes: 3 themes, one sentence each, noting links between the Old and New Testament readings where they exist.
-- keyVerse: one verse from today's readings as "Book Chapter:Verse" and why it matters.
+- themes: ${def.themes}.
+- keyVerse: one verse from today's reading as "Book Chapter:Verse" and why it matters.
 - words: 1-2 key words with the original Hebrew or Greek transliterated and the fuller meaning.
 - questions: 4 reflection questions that move from understanding the text to personal application.
-- application: 2 sentences on living this out today.
+- application: ${def.apply}.
 - prayer: a short prayer of 2-3 sentences.
 Draw on broadly held Christian scholarship. Do not quote copyrighted Bible translations. Plain text only, no markdown.`;
     SAMPLE.json(prompt).then((g) => {
       if (!g || typeof g !== "object") throw { code: "invalid_json" };
       g.day = d;
-      const s2 = DATA.study["day-" + d] = DATA.study["day-" + d] || {};
-      s2.guide = g; save("study", "day-" + d);
-      if (sheetMode === "today" && planDay === d) renderGuide(d, s2);
-    }).finally(() => pendingGuide.delete(d)).catch((e) => {
-      if (sheetMode !== "today" || planDay !== d) return;
+      const s2 = studyDoc(sid); s2.guide = g; save("study", sid);
+      if (guideVisible(pid, d)) renderGuide(d, s2);
+    }).finally(() => pendingGuide.delete(sid)).catch((e) => {
+      if (!guideVisible(pid, d)) return;
       const msg = e && e.code === "not_granted" ? "The study guide needs your permission to use Claude." : e && e.code === "rate_limited" ? "Claude is busy right now. Try again in a minute." : "Couldn't prepare the study guide just now.";
-      box.innerHTML = `<p class="hint">${msg}</p>${e && e.code === "not_granted" ? "" : `<button class="btn quiet" id="mkGuide">Try again</button>`}${soapHTML(d)}`;
+      box.innerHTML = `<p class="hint">${msg}</p>${e && e.code === "not_granted" ? "" : `<button class="btn quiet" id="mkGuide">Try again</button>`}${soapHTML()}`;
       const r = $("#mkGuide"); if (r) r.onclick = () => makeGuide(d);
     });
   }

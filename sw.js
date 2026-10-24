@@ -1,5 +1,5 @@
 // Offline cache for the Bible reader: app shell + full KJV text, fonts cached on first use.
-const CACHE = "kjv-v2";
+const CACHE = "kjv-v3";
 const SHELL = ["./", "./index.html", "./kjv.json", "./manifest.webmanifest", "./icon-180.png", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", (e) => {
